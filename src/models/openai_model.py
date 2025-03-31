@@ -20,7 +20,7 @@ class OpenAILanguageModel(BaseLanguageModel):
             # Prepent the context to the prompt
             prompt = context + prompt
 
-        self.logger.debug(f'Prompting model with: {prompt}')
+        self.logger.debug('Prompting model with: {}', prompt)
 
         try:
             response = self.client.chat.completions.create(
@@ -32,12 +32,12 @@ class OpenAILanguageModel(BaseLanguageModel):
                 return response.choices[0].message.content or ''
             else:
                 self.logger.warning(
-                    f'Warning: Received unexpected response format from\
-                    OpenAI: {response}',
+                    'Warning: Received unexpected response format from OpenAI: {}',
+                    response,
                 )
                 return ''
 
         except Exception as e:
-            self.logger.error(f'Error while prompting model: {e}')
+            self.logger.error('Error while prompting model: {}', e)
             # TODO: Handle error better?
             return ''

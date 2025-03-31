@@ -1,4 +1,4 @@
-import logging
+from loguru import logger
 from abc import ABC
 from abc import abstractmethod
 
@@ -17,7 +17,7 @@ class BaseLanguageModel(ABC):
 
         self.model_name = model_name
         self.api_key = api_key
-        self.logger = logging.getLogger(f'model.{self.model_name}')
+        self.logger = logger.bind(model=self.model_name)
 
         # TODO: If nessesary add **kwargs and save to config?
 
