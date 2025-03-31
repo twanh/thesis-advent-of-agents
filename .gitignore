@@ -75,3 +75,7 @@ pyrightconfig.json
 
 # Jupyter Notebook
 .ipynb_checkpoints
+
+# Aider
+.aider/
+.aider.*
