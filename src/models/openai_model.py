@@ -12,13 +12,13 @@ class OpenAILanguageModel(BaseLanguageModel):
     def prompt(
         self,
         text: str,
-        context: list[dict[str, str]] | None = None,
     ) -> str:
 
         prompt = [{'role': 'user', 'content': text}]
-        if context is not None:
-            # Prepent the context to the prompt
-            prompt = context + prompt
+        if self.system_prompt is not None:
+            prompt = [
+                {'role': 'system', 'content': self.system_prompt},
+            ] + prompt
 
         self.logger.debug(f'Prompting model with: {prompt}')
 
@@ -32,11 +32,14 @@ class OpenAILanguageModel(BaseLanguageModel):
                 return response.choices[0].message.content or ''
             else:
                 self.logger.warning(
-                    f'Warning: Received unexpected response format from OpenAI: {response}'
+                    (
+                        'Received unexpected response format from OpenAI: '
+                        f'{response}'
+                    ),
                 )
                 return ''
 
         except Exception as e:
-            self.logger.error(f'Error while prompting model: {e}')
+            self.logger.error(f'Error while prompting {self}: {e}')
             # TODO: Handle error better?
             return ''
