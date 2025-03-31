@@ -1,7 +1,7 @@
 from abc import ABC
 from abc import abstractmethod
-from typing import Any
 
+from core.state import MainState
 from models.base_model import BaseLanguageModel
 
 
@@ -14,7 +14,7 @@ class BaseAgent(ABC):
         self.model = model
 
     @abstractmethod
-    def process(self, state: dict[str, Any]) -> dict[str, Any]:
+    def process(self, state: MainState) -> MainState:
         """
         Process the state and return the response/updated state.
 
