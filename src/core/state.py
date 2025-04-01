@@ -1,6 +1,27 @@
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Any
+from typing import NamedTuple
+
+
+class Puzzle(NamedTuple):
+    """
+    A puzzle tuple that contains the description and solution.
+    """
+
+    description: str
+    solution: str | None
+    year: int
+    day: int
+
+
+class SolutionPlan(NamedTuple):
+    """
+    A solution plan tuple that contains the plan and confidence score.
+    """
+
+    plan: str
+    confidence: float
 
 
 @dataclass
@@ -15,10 +36,7 @@ class MainState:
     """
 
     # Inital input
-    puzzle_year: int
-    puzzle_day: int
-    puzzle_part: int
-    raw_puzzle_description: str
+    puzzle: Puzzle
 
     # Preprocessing output
     problem_statement: str | None = None
@@ -29,15 +47,14 @@ class MainState:
     underlying_concepts: list[str] = field(default_factory=list)
 
     # Retreival output
-    retreived_puzzles: list[dict[str, str]] = field(
+    retreived_puzzles: list[Puzzle] = field(
         default_factory=list,
-    )  # List of puzzles (description, solution)
+    )
 
     # Planning output
-    selected_plan: str | None = None
-    confidence_score: float | None = None
+    selected_plan: SolutionPlan | None = None
     # List of plans and their confidence scores (plan, confidence)
-    generated_plans: list[tuple[str, float]] = field(default_factory=list)
+    generated_plans: list[SolutionPlan] = field(default_factory=list)
 
     # Coding output
     generated_code: str | None = None
@@ -49,6 +66,7 @@ class MainState:
     is_solved: bool = False
 
     # General metadata
+    # TODO: Add more metadata/see what is nessesary?
     agent_log: list[dict[str, Any]] = field(
         default_factory=list,
     )  # List of agent logs
