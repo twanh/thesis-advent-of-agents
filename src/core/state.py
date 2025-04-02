@@ -1,27 +1,9 @@
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Any
-from typing import NamedTuple
 
-
-class Puzzle(NamedTuple):
-    """
-    A puzzle tuple that contains the description and solution.
-    """
-
-    description: str
-    solution: str | None
-    year: int
-    day: int
-
-
-class SolutionPlan(NamedTuple):
-    """
-    A solution plan tuple that contains the plan and confidence score.
-    """
-
-    plan: str
-    confidence: float
+from utils.util_types import Puzzle
+from utils.util_types import SolutionPlan
 
 
 @dataclass

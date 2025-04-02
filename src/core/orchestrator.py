@@ -2,44 +2,32 @@ from typing import Any
 
 from agents.base_agent import BaseAgent
 from core.state import MainState
+from loguru import logger
+from utils.util_types import AgentSettings
 
 
 class Orchestrator:
 
     def __init__(
         self,
-        agents: dict[str, BaseAgent],
-        agent_config: dict[str, dict[str, Any]],
+        agents: tuple[tuple[BaseAgent, AgentSettings], ...],
         config: dict[str, Any],
     ):
         """
         Initialize the orchestrator with the agents and configuration.
 
         Args:
-            agents dict[str, BaseAgent]:
-                A dictionary mapping agent names to their instantiated objects.
-            agent_config (dict[str, dict[str, Any]]):
-                A dictionary mapping agent names to their configuration.
-                (e.g: {'coding_agent': {'enabled': True}}).
+            agents tuple[dict[str, BaseAgent]]:
+                A tuple containing the agents and the settings,
+                in exection order.
             config (dict[str, Any]): The configuration for the orchestrator.
         """
 
         self.agents = agents
-        self.agent_config = agent_config
+        # TODO: Create the settings for the orchestrator
+        #       (e,g.: # debug tries, etc)
         self.config = config
-
-    def _agent_is_enabled(self, agent_name: str) -> bool:
-        """
-        Check if the agent is enabled in the configuration.
-
-        Args:
-            agent_name (str): The name of the agent.
-
-        Returns:
-            bool: True if the agent is enabled, False otherwise
-        """
-
-        return self.agent_config.get(agent_name, {}).get('enabled', False)
+        self.logger = logger.bind(name='orchestrator')
 
     def solve_puzzle(self, initial_state: MainState) -> MainState:
         """
@@ -52,15 +40,21 @@ class Orchestrator:
             MainState: The final state of the system after processing.
         """
 
-        state = initial_state
+        # For each agent runn the process
+        # - update the state with the agent result
+        # - debug agent: can backtrack
 
-        for agent_name, agent in self.agents.items():
-            if self.agent_config[agent_name].get('enabled', False):
-                state.current_step = agent_name
-                updated_state = agent.process(state)
-                # TODO: Propper error handling for agents
-                if updated_state is None:
-                    raise ValueError(f'Agent {agent_name} returned None')
-                state = updated_state
+        state = initial_state
+        current_agent_index = 0
+        while current_agent_index < len(self.agents):
+
+            current_agent, current_agent_settings = self.agents[current_agent_index]  # noqa: E501
+
+            if current_agent_settings.enabled:
+                self.logger.info('Running agent: {}', current_agent.name)
+                updated_state = current_agent.process(state)
+                self.logger.debug(updated_state)
+
+            current_agent_index += 1
 
         return state

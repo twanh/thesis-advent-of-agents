@@ -26,3 +26,10 @@ class BaseAgent(ABC):
         """
 
         pass
+
+
+class MockAgent(BaseAgent):
+
+    def process(self, state: MainState) -> MainState:
+        # Create mock Agent
+        return state
