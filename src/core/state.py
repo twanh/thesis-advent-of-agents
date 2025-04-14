@@ -23,8 +23,10 @@ class MainState:
     # Preprocessing output
     problem_statement: str | None = None
     input_format: str | None = None
+    output_format: str | None = None
     test_input: str | None = None
     test_expected_output: str | None = None
+    constraints: list[str] | None = None
     keywords: list[str] = field(default_factory=list)
     underlying_concepts: list[str] = field(default_factory=list)
 

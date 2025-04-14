@@ -14,4 +14,5 @@ def _load_prompt_from_file(prompt_name: str) -> str:
 
 PROMPTS = {
     'test': _load_prompt_from_file('test'),
+    'pre-processing': _load_prompt_from_file('pre-processing'),
 }
