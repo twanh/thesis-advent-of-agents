@@ -24,8 +24,8 @@ class MainState:
     problem_statement: str | None = None
     input_format: str | None = None
     output_format: str | None = None
-    test_input: str | None = None
-    test_expected_output: str | None = None
+    # TODO: Create test case type
+    test_cases: list[tuple[str, str]] = field(default_factory=list)
     constraints: list[str] | None = None
     keywords: list[str] = field(default_factory=list)
     underlying_concepts: list[str] = field(default_factory=list)

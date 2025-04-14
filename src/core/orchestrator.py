@@ -1,3 +1,4 @@
+from pprint import pformat
 from typing import Any
 
 from agents.base_agent import BaseAgent
@@ -44,6 +45,7 @@ class Orchestrator:
         # - update the state with the agent result
         # - debug agent: can backtrack
 
+        # NOTE: Should this use deepcopy?
         state = initial_state
         current_agent_index = 0
         while current_agent_index < len(self.agents):
@@ -52,8 +54,8 @@ class Orchestrator:
 
             if current_agent_settings.enabled:
                 self.logger.info('Running agent: {}', current_agent.name)
-                updated_state = current_agent.process(state)
-                self.logger.debug(updated_state)
+                state = current_agent.process(state)
+                self.logger.debug(pformat(state))
 
             current_agent_index += 1
 
