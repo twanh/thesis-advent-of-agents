@@ -75,7 +75,9 @@ pyrightconfig.json
 
 # Jupyter Notebook
 .ipynb_checkpoints
-<<<<<<< Updated upstream
 
 # Aider
 .aider*
+
+# VSCOde
+.vscode/
