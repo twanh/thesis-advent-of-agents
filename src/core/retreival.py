@@ -1,5 +1,6 @@
 from dataclasses import asdict
 from dataclasses import dataclass
+from typing import Literal
 
 import numpy as np
 import psycopg
@@ -21,12 +22,23 @@ DEFAULT_WEIGHTS = {
 
 @dataclass
 class PuzzleData:
+    # Note: for now parts are not used, because these required solving the
+    # parts1 to be solved first
     year: int
     day: int
     full_description: str
     problem_statement: str
     keywords: list[str]
     underlying_concepts: list[str]
+
+
+@dataclass
+class SolutionData:
+    code: str
+    author: str
+    source: Literal['github', 'reddit']
+    puzzle_day: int
+    puzzle_year: int
 
 
 class PuzzleRetreival:
@@ -315,3 +327,84 @@ class PuzzleRetreival:
         state = self.pre_processing_agent.process(state)
 
         return self.add_puzzle_from_state(state)
+
+    def add_solution(self, solution: SolutionData) -> int:
+        """
+        Add a solution to the database.
+
+        Args:
+            solution (SolutionData): The solution to add.
+
+        Returns:
+            int: The ID of the added solution.
+        """
+
+        # Check that the puzzle exists
+        with self._get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                SELECT id FROM puzzles
+                WHERE year = %s AND day = %s;
+                """, (solution.puzzle_year, solution.puzzle_day),
+                )
+                puzzle_id = cur.fetchone()
+                if puzzle_id is None:
+                    self.logger.error(
+                        (
+                            f'Puzzle {solution.puzzle_year}-'
+                            f'{solution.puzzle_day} does not exist.'
+                        ),
+                    )
+                    # TODO: Raise?
+                    return 0
+
+        # Check that the solution exists
+        # TODO: Is this the best way to check that a soltuion doesn't exist?
+        with self._get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                SELECT id FROM solutions
+                WHERE puzzle_id = %s AND author = %s;
+                """, (puzzle_id, solution.author),
+                )
+                existing_solution = cur.fetchone()
+                if existing_solution:
+                    self.logger.info(
+                        (
+                            f'Solution by {solution.author} for '
+                            f'puzzle {solution.puzzle_year}-'
+                            f'{solution.puzzle_day} '
+                            'already exists.'
+                        ),
+                    )
+                    return existing_solution[0]
+
+        # Add the solution to the Database
+        with self._get_connection() as conn:
+            with conn.cursor() as cur:
+
+                cur.execute(
+                    """
+                INSERT INTO solutions (
+                    puzzle_id, code, author, source
+                ) VALUES (%s, %s, %s, %s)
+                RETURNING id;
+                """, (
+                        puzzle_id,
+                        solution.code,
+                        solution.author,
+                        solution.source,
+                    ),
+                )
+                solution_id = cur.fetchone()
+                if solution_id is not None:
+                    solution_id = solution_id[0]
+                    self.logger.info(
+                        f'Solution added with ID {solution_id}.',
+                    )
+                    conn.commit()
+                    return solution_id
+
+                return 0
