@@ -1,8 +1,22 @@
+from dataclasses import asdict
 from dataclasses import dataclass
 
+import numpy as np
 import psycopg
+from agents.pre_processing_agent import PreProcessingAgent
 from loguru import logger
 from openai import OpenAI
+from utils.util_types import Puzzle
+
+from src.core.state import MainState
+
+
+DEFAULT_WEIGHTS = {
+    'full_description': 0.1,
+    'problem_statement': 0.3,
+    'underlying_concepts': 0.4,
+    'keywords': 0.2,
+}
 
 
 @dataclass
@@ -17,11 +31,20 @@ class PuzzleData:
 
 class PuzzleRetreival:
 
-    def __init__(self, connection_string: str, openai_key: str):
+    def __init__(
+        self,
+        connection_string: str,
+        openai_key: str,
+        *,  # named arguments only
+        pre_processing_agent: PreProcessingAgent | None = None,
+        weights: dict[str, float] | None = None,
+    ):
 
         self.connection_string = connection_string
         self.client = OpenAI(api_key=openai_key)
         self.logger = logger.bind(name='PuzzleRetreival')
+        self.pre_processing_agent = pre_processing_agent
+        self.weights = weights or DEFAULT_WEIGHTS
 
     def _get_connection(self, **kwargs):
         return psycopg.connect(self.connection_string, **kwargs)
@@ -118,3 +141,177 @@ class PuzzleRetreival:
 
                 conn.commit()
                 self.logger.info('Database initialization complete.')
+
+    def _create_embedding(self, text: str) -> list[float]:
+        """
+        Create an embedding for the given text using OpenAI's API.
+
+        Args:
+            text (str): The text to create an embedding for.
+
+        Returns:
+            list[float]: The embedding vector.
+        """
+
+        self.logger.trace(f'Creating embedding for {text=}')
+
+        response = self.client.embeddings.create(
+            input=text,
+            model='text-embedding-3-small',
+        )
+
+        return response.data[0].embedding
+
+    def _compute_weighted_embedding(
+        self,
+        puzzle: PuzzleData,
+    ) -> list[float]:
+        """
+        Compute a weighted composite embedding for the puzzle.
+
+        Args:
+            puzzle (PuzzleData): The puzzle data.
+
+        Returns:
+            list[float]: The composite embedding.
+        """
+
+        puzzle_data = asdict(puzzle)
+        # THis assumes that all the fields have a weight
+        # if they need to be included in the compsite embedding
+        embeddings = {}
+        for field in self.weights:
+            embeddings[field] = np.array(
+                self._create_embedding(puzzle_data[field]),
+            )
+
+        # Calculate the composite embedding
+        composite_embedding = np.zeros_like(list(embeddings.values())[0])
+        for field, weight in self.weights.items():
+            weighted_embedding = weight * embeddings[field]
+            composite_embedding += weighted_embedding
+
+        # Normalize the embedding
+        norm = np.linalg.norm(composite_embedding)
+        if norm > 0:
+            composite_embedding = composite_embedding / norm
+
+        return composite_embedding.tolist()
+
+    def _state_to_puzzle_data(self, state: MainState) -> PuzzleData:
+        """
+        Convert the state to a PuzzleData object.
+        """
+
+        return PuzzleData(
+            year=state.puzzle.year,
+            day=state.puzzle.day,
+            full_description=state.puzzle.description,
+            problem_statement=state.problem_statement or '',
+            keywords=state.keywords,
+            underlying_concepts=state.underlying_concepts,
+        )
+
+    def add_puzzle_from_state(self, state: MainState) -> int:
+        """
+        Add a puzzle from the state to the database.
+
+        Args:
+            state (MainState): The state containing the puzzle.
+
+        Returns:
+            int: The ID of the added puzzle.
+        """
+
+        # TODO: Should we check here if the puzzle exists in the DB?
+
+        # Create the composite embedding
+        puzzle_data = self._state_to_puzzle_data(state)
+        embedding = self._compute_weighted_embedding(
+            puzzle_data,
+        )
+
+        # Add the puzzle to the Database
+        with self._get_connection() as conn:
+            with conn.cursor() as cur:
+
+                query = """
+                INSERT INTO puzzles (
+                    year, day, full_description, problem_statement,
+                    keywords, underlying_concepts, embedding
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING id;
+                """
+
+                self.logger.debug(f'Executing query: {query}')
+
+                cur.execute(
+                    query, (
+                        puzzle_data.year,
+                        puzzle_data.day,
+                        puzzle_data.full_description,
+                        puzzle_data.problem_statement,
+                        puzzle_data.keywords,
+                        puzzle_data.underlying_concepts,
+                        embedding,
+                    ),
+                )
+
+                puzzle_id = cur.fetchone()
+                if puzzle_id is not None:
+                    puzzle_id = puzzle_id[0]
+                    self.logger.info(
+                        f'Puzzle {puzzle_data.year}-{puzzle_data.day} '
+                        f'added with ID {puzzle_id}.',
+                    )
+                    conn.commit()
+                    return puzzle_id
+
+                # TODO: Raise here?
+                self.logger.error(
+                    f'Failed to add puzzle to the database. {puzzle_id=}',
+                )
+                return 0
+
+    def add_puzzle(self, puzzle: Puzzle) -> int:
+        """
+        Add a puzzle to the database.
+
+        Note: this method requires a pre-processing agent to be available.
+
+        Args:
+            puzzle (Puzzle): The puzzle to add.
+
+        Returns:
+            int: The ID of the added puzzle.
+        """
+
+        # Check for pre-processing agent
+        assert self.pre_processing_agent is not None, (
+            'Pre-processing agent is not available.'
+        )
+
+        # Check if the puzzle already exists in the DB
+        with self._get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                SELECT id FROM puzzles
+                WHERE year = %s AND day = %s;
+                """, (puzzle.year, puzzle.day),
+                )
+                exesting_puzzle = cur.fetchone()
+                if exesting_puzzle:
+                    self.logger.info(
+                        (
+                            f'Puzzle {puzzle.year}-{puzzle.day} '
+                            'already exists.'
+                        ),
+                    )
+                    return exesting_puzzle[0]
+
+        # Preprocess the puzzle
+        state = MainState(puzzle=puzzle)
+        state = self.pre_processing_agent.process(state)
+
+        return self.add_puzzle_from_state(state)
