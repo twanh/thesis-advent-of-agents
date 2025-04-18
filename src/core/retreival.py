@@ -408,3 +408,59 @@ class PuzzleRetreival:
                     return solution_id
 
                 return 0
+
+    def get_similar_puzzles_from_state(
+        self,
+        state: MainState,
+        limit: int = 3,
+    ) -> list[PuzzleData]:
+
+        # Create PuzzleData
+        puzzle_data = self._state_to_puzzle_data(state)
+        # Create embedding
+        embedding = self._compute_weighted_embedding(puzzle_data)
+
+        # Query the DB for similar puzzles
+        with self._get_connection() as conn:
+            with conn.cursor() as cur:
+
+                query = """
+                SELECT id, year, day, full_description, problem_statement,
+                        keywords, underlying_concepts,
+                        embedding <-> %s::vector AS distance
+                FROM puzzles
+                ORDER BY distance
+                LIMIT %s;
+                """
+
+                cur.execute(query, (embedding, limit))
+                results = cur.fetchall()
+
+                return [
+                    PuzzleData(
+                        year=result[1],
+                        day=result[2],
+                        full_description=result[3],
+                        problem_statement=result[4],
+                        keywords=result[5],
+                        underlying_concepts=result[6],
+                    ) for result in results
+                ]
+
+    def get_similar_puzzles(
+        self,
+        puzzle: Puzzle,
+        limit: int = 3,
+    ) -> list[PuzzleData]:
+
+        # Create state object from puzzle
+        state = MainState(puzzle=puzzle)
+
+        # Pre-process the puzzel (extract keywords, etc.)
+        assert self.pre_processing_agent is not None, (
+            'Pre-processing agent is not available.'
+        )
+
+        state = self.pre_processing_agent.process(state)
+
+        return self.get_similar_puzzles_from_state(state, limit=limit)
