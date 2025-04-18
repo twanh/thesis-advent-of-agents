@@ -5,11 +5,10 @@ from typing import Literal
 import numpy as np
 import psycopg
 from agents.pre_processing_agent import PreProcessingAgent
+from core.state import MainState
 from loguru import logger
 from openai import OpenAI
 from utils.util_types import Puzzle
-
-from src.core.state import MainState
 
 
 DEFAULT_WEIGHTS = {
