@@ -1,5 +1,6 @@
 from abc import ABC
 from abc import abstractmethod
+from typing import Any
 
 from core.state import MainState
 from loguru import logger
@@ -10,11 +11,17 @@ from prompts.prompts import PROMPTS
 class BaseAgent(ABC):
     """Base class for agents"""
 
-    def __init__(self, agent_name: str, model: BaseLanguageModel):
+    def __init__(
+            self,
+            agent_name: str,
+            model: BaseLanguageModel,
+            **settings: Any,
+    ):
 
         self.name = agent_name
         self.model = model
         self.logger = logger.bind(agent_name=agent_name)
+        self.settings = settings
 
     def _get_prompt(self, prompt_name: str, **kwargs) -> str:
 
