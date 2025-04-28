@@ -51,6 +51,8 @@ class RetrievalAgent(BaseAgent):
         # TODO: Use the limit (get this from settings)
         puzzles = self.puzzle_retreival.get_similar_puzzles_from_state(state)
 
+        self.logger.debug(f'Found {len(puzzles)} similar puzzles')
+
         puzzles_with_solutions: list[Puzzle] = []
 
         for puzzle in puzzles:
@@ -59,6 +61,17 @@ class RetrievalAgent(BaseAgent):
                 puzzle.day,
                 # TODO: implement limit
             )
+
+            self.logger.debug(
+                f'Found {len(puzzle_solutions)} solutions for puzzle',
+            )
+            self.logger.trace(f'{puzzle=}')
+
+            if len(puzzle_solutions) < 1:
+                self.logger.warning(
+                    'Did not find any solutions for puzzle. Skipping...',
+                )
+                continue
 
             inp = {
                 'problem_statement': puzzle.problem_statement,
