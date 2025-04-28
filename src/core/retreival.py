@@ -463,3 +463,38 @@ class PuzzleRetreival:
         state = self.pre_processing_agent.process(state)
 
         return self.get_similar_puzzles_from_state(state, limit=limit)
+
+    def get_solutions(
+        self,
+        puzzle_year: int,
+        puzzle_day: int,
+        limit: int = 3,
+    ) -> list[SolutionData]:
+
+        with self._get_connection() as conn:
+            with conn.cursor() as cur:
+
+                cur.execute(
+                    """
+                            SELECT code, author, source
+                            FROM solutions
+                            WHERE puzzle_id = (
+                                SELECT id
+                                FROM puzzles p
+                                WHERE p."day" = %s and p."year" = %s
+                            )
+                            LIMIT %s
+                            """, (puzzle_day, puzzle_year, limit),
+                )
+
+                results = cur.fetchall()
+
+                return [
+                    SolutionData(
+                        code=result[0],
+                        author=result[1],
+                        source=result[2],
+                        puzzle_day=puzzle_day,
+                        puzzle_year=puzzle_year,
+                    ) for result in results
+                ]
