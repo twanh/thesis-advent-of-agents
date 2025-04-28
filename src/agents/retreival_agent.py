@@ -55,6 +55,7 @@ class RetrievalAgent(BaseAgent):
 
         puzzles_with_solutions: list[Puzzle] = []
 
+        # TODO: Should we error when no similar puzzles are found?
         for puzzle in puzzles:
             puzzle_solutions = self.puzzle_retreival.get_solutions(
                 puzzle.year,

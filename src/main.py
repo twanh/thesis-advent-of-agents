@@ -3,6 +3,7 @@ import os
 from agents.base_agent import BaseAgent
 from agents.base_agent import MockAgent
 from agents.pre_processing_agent import PreProcessingAgent
+from agents.retreival_agent import RetrievalAgent
 from core.orchestrator import Orchestrator
 from core.state import MainState
 from dotenv import load_dotenv
@@ -26,7 +27,12 @@ if __name__ == '__main__':
             AgentSettings(enabled=True, can_debug=False),
         ),
         (
-            MockAgent('retreival', model=model),
+            RetrievalAgent(
+                'retreival',
+                model=model,
+                connection_string=os.getenv('DB_CONNECTION_STRING') or '',
+                openai_key=os.getenv('OPENAI_API_KEY') or '',
+            ),
             AgentSettings(enabled=True, can_debug=False),
         ),
         (
