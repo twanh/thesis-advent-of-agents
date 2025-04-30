@@ -358,6 +358,8 @@ class PuzzleRetreival:
                     # TODO: Raise?
                     return 0
 
+                puzzle_id = puzzle_id[0]
+
         # Check that the solution exists
         # TODO: Is this the best way to check that a soltuion doesn't exist?
         with self._get_connection() as conn:
