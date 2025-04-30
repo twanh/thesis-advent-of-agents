@@ -17,6 +17,8 @@ PROJECT_ROOT = os.path.join(
 )
 sys.path.append(PROJECT_ROOT)
 
+# noreorder
+
 
 def _main() -> int:
 
@@ -42,6 +44,12 @@ def _main() -> int:
         default='ERROR',
         help='Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)',
     )
+
+    parser.add_argument(
+        '--language',
+        type=str,
+        help='Only add solutions with the given langauge to the database.',
+    )
     args = parser.parse_args()
 
     loguru.logger.remove()
@@ -59,10 +67,18 @@ def _main() -> int:
     with open(args.json_file, 'r') as f:
         solutions = json.load(f)
 
-    r_solutions = solutions
-    print(f'Found {len(r_solutions)}')
+    print(f'Found {len(solutions)}')
+
     added = 0
-    for solution in tqdm(r_solutions):
+    skipped = 0
+    for solution in tqdm(solutions):
+
+        # If language is specified only add solutions with
+        # the correct language
+        if args.language:
+            if solution['language'].lower() != args.language.lower():
+                skipped += 1
+                continue
 
         sol_data = SolutionData(
             code=solution['code'],
@@ -76,7 +92,13 @@ def _main() -> int:
         if ret != 0:
             added += 1
 
-    print(f'Added {added}/{len(r_solutions)} to database.')
+    print(f'Added {added}/{len(solutions)} to database.')
+    print(f'Skipped {skipped} solutions (did not meet language requirement)')
+    print(
+        f'Missed {len(solutions)-(added+skipped)}\
+          solutions due to other reasons',
+    )
+
     return 0
 
 
