@@ -4,6 +4,7 @@ import os
 import sys
 
 import dotenv
+import loguru
 from core.retreival import PuzzleRetreival
 from core.retreival import SolutionData
 from tqdm import tqdm
@@ -35,7 +36,16 @@ def _main() -> int:
         help='Database connection string (psycopg2 format)',
     )
 
+    parser.add_argument(
+        '-l', '--log-level',
+        type=str,
+        default='ERROR',
+        help='Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)',
+    )
     args = parser.parse_args()
+
+    loguru.logger.remove()
+    loguru.logger.add(sys.stderr, level=args.log_level)
 
     dotenv.load_dotenv()
 
@@ -49,7 +59,7 @@ def _main() -> int:
     with open(args.json_file, 'r') as f:
         solutions = json.load(f)
 
-    r_solutions = solutions.get('solutions', [])
+    r_solutions = solutions
     print(f'Found {len(r_solutions)}')
     added = 0
     for solution in tqdm(r_solutions):
@@ -58,15 +68,15 @@ def _main() -> int:
             code=solution['code'],
             author=solution['author'],
             source='reddit',
-            puzzle_day=solution['thread_info']['day'],
-            puzzle_year=solution['thread_info']['year'],
+            puzzle_day=solution['puzzle_day'],
+            puzzle_year=solution['puzzle_year'],
         )
 
         ret = retreival.add_solution(sol_data)
         if ret != 0:
             added += 1
 
-    print(f'Added {added}/len({r_solutions}) to database.')
+    print(f'Added {added}/{len(r_solutions)} to database.')
     return 0
 
 
