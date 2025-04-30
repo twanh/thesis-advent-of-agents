@@ -78,7 +78,8 @@ class RetrievalAgent(BaseAgent):
 
             if len(puzzle_solutions) < 1:
                 self.logger.warning(
-                    'Did not find any solutions for puzzle. Skipping...',
+                    'Did not find any solutions for puzzle'
+                    f'{puzzle.day}-{puzzle.year}. Skipping...',
                 )
                 continue
 
