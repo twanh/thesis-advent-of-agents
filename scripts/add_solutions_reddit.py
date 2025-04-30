@@ -1,5 +1,3 @@
-from core.retreival import SolutionData  # noreorder
-from core.retreival import PuzzleRetreival  # noreorder
 import argparse
 import json
 import os
@@ -16,6 +14,9 @@ PROJECT_ROOT = os.path.join(
     ), '../src/',
 )
 sys.path.append(PROJECT_ROOT)
+
+from core.retreival import PuzzleRetreival  # NOQA
+from core.retreival import SolutionData  # NOQA
 
 
 def _main() -> int:
