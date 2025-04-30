@@ -20,6 +20,10 @@ class RetrievalAgent(BaseAgent):
 
         super().__init__(agent_name, model, **settings)
 
+        # Get the retreival limit (# of puzzles/solutions to retreive)
+        # default to 3
+        self.retreival_limit = self.settings.get('limit', 3)
+
         # Check that required settings are given
         con_string = self.settings.get('connection_string', None)
         openai_key = self.settings.get('openai_key', None)
@@ -45,11 +49,15 @@ class RetrievalAgent(BaseAgent):
 
     def process(self, state: MainState) -> MainState:
 
+        # dataclass is passed by reference
+        # so we need to deepcopy it in order to not modify the original
         state = deepcopy(state)
 
         # Retreive all similar puzzles
-        # TODO: Use the limit (get this from settings)
-        puzzles = self.puzzle_retreival.get_similar_puzzles_from_state(state)
+        puzzles = self.puzzle_retreival.get_similar_puzzles_from_state(
+            state,
+            limit=self.retreival_limit,
+        )
 
         self.logger.debug(f'Found {len(puzzles)} similar puzzles')
 
@@ -60,7 +68,7 @@ class RetrievalAgent(BaseAgent):
             puzzle_solutions = self.puzzle_retreival.get_solutions(
                 puzzle.year,
                 puzzle.day,
-                # TODO: implement limit
+                limit=self.retreival_limit,
             )
 
             self.logger.debug(
