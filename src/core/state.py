@@ -31,7 +31,9 @@ class MainState:
     underlying_concepts: list[str] = field(default_factory=list)
 
     # Retreival output
-    retreived_puzzles: list[Puzzle] = field(
+    # list of tuples containing the puzzle and the plan on how to is_solved
+    # the puzzle
+    retreived_puzzles: list[tuple[Puzzle, str]] = field(
         default_factory=list,
     )
 

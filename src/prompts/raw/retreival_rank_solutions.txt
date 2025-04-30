@@ -55,6 +55,14 @@ Assign Rank 1 to the solution deemed most suitable as an example based on excell
 especially in its correct and effective use of expected concepts.
 Rank subsequent solutions in descending order of suitability.
 
+-------------------------------------------------------------
+Step 4: Create a plan on how to solve the puzzle
+-------------------------------------------------------------
+For each solution create a planning on how to solve the puzzle.
+Take the solution into consideration. Your plan should lead to the
+given solution for the puzzle. Make sure it's an actual plan
+and an programmer can use it to solve the problem.
+
 ------------------------------------------------------------
 Step 4: Generate Structured Output Format
 ------------------------------------------------------------
@@ -66,12 +74,14 @@ Return your final answer as a JSON object conforming to the schema provided belo
     {{
       "rank": 1,
       "solution_id": "Identifier for the highest ranked solution (e.g., 'Solution A')",
-      "justification": "A concise paragraph explaining the rationale for this solution's rank, highlighting its performance across the criteria (Correctness, Use of Concepts, Efficiency, Clarity). Emphasize why it stands out as the best example."
+      "justification": "A concise paragraph explaining the rationale for this solution's rank, highlighting its performance across the criteria (Correctness, Use of Concepts, Efficiency, Clarity). Emphasize why it stands out as the best example.",
+      "plan": "The plan on how to solve the problmen"
     }},
     {{
       "rank": 2,
       "solution_id": "Identifier for the second ranked solution (e.g., 'Solution B')",
-      "justification": "A concise paragraph explaining the rationale for this solution's rank, highlighting its performance across the criteria."
+      "justification": "A concise paragraph explaining the rationale for this solution's rank, highlighting its performance across the criteria.",
+      "plan": "The plan on how to solve the problmen"
     }}
     // ... Add an object for each additional ranked solution in descending order of rank ...
   ],

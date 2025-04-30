@@ -61,7 +61,7 @@ class RetrievalAgent(BaseAgent):
 
         self.logger.debug(f'Found {len(puzzles)} similar puzzles')
 
-        puzzles_with_solutions: list[Puzzle] = []
+        puzzles_with_solutions: list[tuple[Puzzle, str]] = []
 
         # TODO: Should we error when no similar puzzles are found?
         for puzzle in puzzles:
@@ -117,9 +117,20 @@ class RetrievalAgent(BaseAgent):
 
             # Get the top ranked solution for the current puzzle
             ranked_sols = data.get('ranked_solutions', [])
-            top_rank_id = list(
-                filter(lambda x: x['rank'] == 1, ranked_sols),
-            )[0].get('solution_id', '')
+
+            top_ranked_solution = next(
+                (sol for sol in ranked_sols if sol.get('rank', 0) == 1),
+                None,
+            )
+
+            if top_ranked_solution is None:
+                self.logger.error(
+                    'Could not find a top ranked solution: ', ranked_sols,
+                )
+                raise ValueError('No rank=1 found')
+
+            top_rank_id = top_ranked_solution.get('solution_id', '')
+            top_rank_plan = top_ranked_solution.get('plan', '')
 
             top_solution_code = list(
                 filter(
@@ -132,16 +143,19 @@ class RetrievalAgent(BaseAgent):
                 (
                     'Top ranked solution for puzzle '
                     f'{puzzle.day}-{puzzle.year} is '
-                    f'{top_solution_code}'
+                    f'{top_solution_code} with plan {top_rank_plan}'
                 ),
             )
 
             puzzles_with_solutions.append(
-                Puzzle(
-                    description=puzzle.full_description,
-                    solution=top_solution_code,
-                    year=puzzle.year,
-                    day=puzzle.day,
+                (
+                    Puzzle(
+                        description=puzzle.full_description,
+                        solution=top_solution_code,
+                        year=puzzle.year,
+                        day=puzzle.day,
+                    ),
+                    top_rank_plan,
                 ),
             )
 
