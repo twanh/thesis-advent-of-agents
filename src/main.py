@@ -2,6 +2,7 @@ import os
 
 from agents.base_agent import BaseAgent
 from agents.base_agent import MockAgent
+from agents.planning_agent import PlanningAgent
 from agents.pre_processing_agent import PreProcessingAgent
 from agents.retreival_agent import RetrievalAgent
 from core.orchestrator import Orchestrator
@@ -36,7 +37,7 @@ if __name__ == '__main__':
             AgentSettings(enabled=True, can_debug=False),
         ),
         (
-            MockAgent('planning', model=model),
+            PlanningAgent('planning', model=model),
             AgentSettings(enabled=True, can_debug=False),
         ),
         (
