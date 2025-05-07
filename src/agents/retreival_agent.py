@@ -123,7 +123,7 @@ class RetrievalAgent(BaseAgent):
                 # TODO: Do not hardcode n retries
                 if self.retries < 3:
                     self.logger.info(
-                        f'Retrying retreival agent {self.retries}/f',
+                        f'Retrying retreival agent {self.retries}/3',
                     )
                     self.retries += 1
                     return self.process(state)
