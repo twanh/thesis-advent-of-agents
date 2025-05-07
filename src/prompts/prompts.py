@@ -17,4 +17,5 @@ PROMPTS = {
     'pre_processing': _load_prompt_from_file('pre_processing'),
     'retreival_rank_solutions': _load_prompt_from_file('retreival_rank_solutions'),  # noqa: E501
     'planning_step_by_step': _load_prompt_from_file('planning_step_by_step'),
+    'planning_confidence': _load_prompt_from_file('planning_confidence'),
 }
