@@ -26,7 +26,12 @@ class BaseAgent(ABC):
     def _get_prompt(self, prompt_name: str, **kwargs) -> str:
 
         try:
-            formatted_prompt = PROMPTS.get(prompt_name, '').format(**kwargs)
+            raw_prompt = PROMPTS.get(prompt_name, None)
+            if raw_prompt is None:
+                self.logger.warning(f'Could not find prompt {prompt_name=}')
+                return ''
+            formatted_prompt = raw_prompt.format(**kwargs)
+
         except KeyError as e:
             self.logger.error(f'Missing key in prompt: {e}')
             formatted_prompt = ''
