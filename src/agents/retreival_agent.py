@@ -23,6 +23,7 @@ class RetrievalAgent(BaseAgent):
         # Get the retreival limit (# of puzzles/solutions to retreive)
         # default to 3
         self.retreival_limit = self.settings.get('limit', 3)
+        self.retries = 0
 
         # Check that required settings are given
         con_string = self.settings.get('connection_string', None)
@@ -107,13 +108,30 @@ class RetrievalAgent(BaseAgent):
             self.logger.debug(f'Model response: {ret}')
 
             if not ret:
+                # TODO: Handle this case, raise error or make
+                # sure that the other agents can handle this
                 self.logger.warning('RetreivalAgent response is empty')
                 continue
 
             # Extract json
             extracted = extract_json_from_markdown(ret)
-            data = json.loads(extracted[0])
-            self.logger.trace(f'Extracted {extracted} json from response')
+            try:
+                data = json.loads(extracted[0])
+                self.logger.trace(f'Extracted {extracted} json from response')
+            except json.JSONDecodeError as e:
+                self.logger.warning('Could not decode json: ', e)
+                # TODO: Do not hardcode n retries
+                if self.retries < 3:
+                    self.logger.info(
+                        f'Retrying retreival agent {self.retries}/f',
+                    )
+                    self.retries += 1
+                    return self.process(state)
+                else:
+                    self.logger.error(
+                        'Could not decode json after 3 retries',
+                    )
+                    raise ValueError('Could not decode json', e)
 
             # Get the top ranked solution for the current puzzle
             ranked_sols = data.get('ranked_solutions', [])
