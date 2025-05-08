@@ -43,7 +43,8 @@ class DebuggingAgent(BaseAgent):
             stderr = process.stderr.strip()
             self.logger.debug(f'Got output: {output}')
             self.logger.debug(f'Got stderr: {stderr}')
-            return output, stderr
+            # Will return None if stderr is empty string
+            return output, stderr or None
         except subprocess.TimeoutExpired:
             # Handle timeout
             self.logger.warning('Timeout for running code expired.')
@@ -58,8 +59,8 @@ class DebuggingAgent(BaseAgent):
 
     def _analyze_errors(self, code: str, errors: str) -> None:
 
-        # TODO: Implement
         self.logger.info('Debug Agent: Analyzing errors')
+
         return None
 
     def _cycle_plans(self, state: MainState) -> MainState:
@@ -73,6 +74,9 @@ class DebuggingAgent(BaseAgent):
         # TODO: Should we sort on confidence?
         next_plan = state.generated_plans.pop(0)
         state.selected_plan = next_plan
+        self.logger.info('Debug Agent: Cycling to next plan')
+        self.logger.debug(f'Next plan: {next_plan}')
+
         return state
 
     def process(self, state: MainState) -> MainState:
@@ -116,6 +120,9 @@ class DebuggingAgent(BaseAgent):
 
             if errors is not None:
                 self._analyze_errors(state.generated_code, errors)
+
+            else:
+                return self._cycle_plans(state)
 
         # Check the result on the test cases
 

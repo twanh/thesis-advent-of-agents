@@ -57,6 +57,21 @@ class Orchestrator:
                 state = current_agent.process(state)
                 self.logger.debug(pformat(state))
 
+            if state.is_solved:
+                self.logger.success('Puzzle solved!')
+                self.logger.info('Final code: {}', state.final_code)
+                break
+
+            # If the agent is the debugging agents
+            # then we need to backtrack to the coding agent
+            if current_agent_settings.can_debug:
+                state.debug_attempts += 1
+                # TODO: Should we check if the debugging agent
+                # is the one before coding?
+                self.logger.info('Backtracking by 1 step')
+                current_agent_index -= 1
+                continue
+
             current_agent_index += 1
 
         return state
