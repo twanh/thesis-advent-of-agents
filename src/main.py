@@ -3,8 +3,8 @@ import os
 import sys
 
 from agents.base_agent import BaseAgent
-from agents.base_agent import MockAgent
 from agents.coding_agent import CodingAgent
+from agents.debugging_agent import DebuggingAgent
 from agents.planning_agent import PlanningAgent
 from agents.pre_processing_agent import PreProcessingAgent
 from agents.retreival_agent import RetrievalAgent
@@ -146,6 +146,10 @@ if __name__ == '__main__':
     else:
         def is_enabled(agent_name): return True if agent_name not in args.disable_agents else False  # noqa: E501
 
+    # Load the puzzle input
+    with open(args.puzzle_input, 'r') as inpf:
+        puzzle_input = inpf.read()
+
     agents: tuple[tuple[BaseAgent, AgentSettings], ...] = (
         (
             PreProcessingAgent(
@@ -171,7 +175,12 @@ if __name__ == '__main__':
             AgentSettings(enabled=is_enabled('coding'), can_debug=False),
         ),
         (
-            MockAgent('debugging', model=agents_models['debugging']),
+            DebuggingAgent(
+                'debugging',
+                model=agents_models['debugging'],
+                expected_output=args.expected_output,
+                puzzle_input=puzzle_input,
+            ),
             AgentSettings(enabled=is_enabled('debugging'), can_debug=True),
         ),
     )
