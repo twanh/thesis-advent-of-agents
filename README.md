@@ -34,6 +34,11 @@ Simple ASCII diagram (excluding MockAgents):
   +-----------------------+
              |
              v
+  +-----------------------+
+  | DebuggingAgent        |
+  +-----------------------+
+             |
+             v
      +----------------+
      |  Solution      |
      +----------------+
