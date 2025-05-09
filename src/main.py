@@ -200,3 +200,9 @@ if __name__ == '__main__':
 
     state = MainState(puzzle=puzzle)
     ret_state = orchestrator.solve_puzzle(state)
+
+    if ret_state.is_solved:
+        logger.success(f'Puzzle {puzzle.year}-{puzzle.day} solved')
+        logger.info('Final code:\n{}', ret_state.final_code)
+    else:
+        logger.error(f'Could not solve puzzle {puzzle.year}-{puzzle.day}')

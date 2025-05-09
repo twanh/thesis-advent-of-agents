@@ -160,19 +160,55 @@ class DebuggingAgent(BaseAgent):
                 self.logger.warning('No output from code, switching plans.')
                 return self._cycle_plans(state)
 
+            # If there are errors analyze these errors
             if test_result.errors is not None:
                 self._analyze_errors(state.generated_code, test_result.errors)
-
             else:
+                # TODO: Analyze why output mith have been different
                 return self._cycle_plans(state)
 
-        # If there are (syntax) errors:
-        # Backtrack: to coding agent
+        # TODO: Implement proper backtracking
+        # (also in orchestrator)
 
-        # Result on test cases:
-        # fail -> backtrack planning / coding agent
-        # sucess: continue
+        # Try the example test cases from the puzzle
+        if len(state.test_cases) > 0:
 
-        # Check the result on the final expected output
+            successful_tests = 0
+            for i, test_case in enumerate(state.test_cases):
+                self.logger.info(
+                    f'Running example test {i+1}/{len(state.test_cases)}',
+                )
 
+                test_result = self._run_test_case(
+                    state.generated_code,
+                    test_case,
+                )
+
+                if not test_result.success:
+                    if test_result.errors:
+                        self._analyze_errors(
+                            state.generated_code,
+                            test_result.errors,
+                        )
+
+                    else:
+                        # TODO: implement output checking
+                        return self._cycle_plans(state)
+
+                else:
+                    successful_tests += 1
+
+            if successful_tests == len(state.test_cases):
+                self.logger.info('All example tests cases were successful')
+                if expected_output is None:
+                    self.logger.info(
+                        'No expected output was given and all tests succeeded,'
+                        ' considering the solution correct',
+                    )
+                    state.is_solved = True
+                    state.final_code = state.generated_code
+            else:
+                self.logger.warning(
+                    'Test cases failed, cycling plans did not work',
+                )
         return state

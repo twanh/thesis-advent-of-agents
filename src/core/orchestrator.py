@@ -6,6 +6,8 @@ from core.state import MainState
 from loguru import logger
 from utils.util_types import AgentSettings
 
+MAX_DEBUG_ATTEMPTS = 3
+
 
 class Orchestrator:
 
@@ -59,7 +61,12 @@ class Orchestrator:
 
             if state.is_solved:
                 self.logger.success('Puzzle solved!')
-                self.logger.info('Final code: {}', state.final_code)
+                break
+
+            if state.debug_attempts > MAX_DEBUG_ATTEMPTS:
+                self.logger.warning(
+                    f'Max debug debug_attempts {MAX_DEBUG_ATTEMPTS} reached',
+                )
                 break
 
             # If the agent is the debugging agents
