@@ -21,6 +21,15 @@ class SolutionPlan(NamedTuple):
     confidence: float
 
 
+class TestCase(NamedTuple):
+    """
+    A test case tuple that contains the input and expected output.
+    """
+
+    input_: str
+    expected_output: str
+
+
 class AgentSettings(NamedTuple):
 
     enabled: bool

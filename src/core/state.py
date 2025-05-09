@@ -4,6 +4,7 @@ from typing import Any
 
 from utils.util_types import Puzzle
 from utils.util_types import SolutionPlan
+from utils.util_types import TestCase
 
 
 @dataclass
@@ -25,7 +26,7 @@ class MainState:
     input_format: str | None = None
     output_format: str | None = None
     # TODO: Create test case type
-    test_cases: list[tuple[str, str]] = field(default_factory=list)
+    test_cases: list[TestCase] = field(default_factory=list)
     constraints: list[str] | None = None
     keywords: list[str] = field(default_factory=list)
     underlying_concepts: list[str] = field(default_factory=list)

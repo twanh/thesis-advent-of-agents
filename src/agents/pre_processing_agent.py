@@ -3,6 +3,7 @@ import json
 
 from agents.base_agent import BaseAgent
 from core.state import MainState
+from utils.util_types import TestCase
 from utils.utils import extract_json_from_markdown
 
 
@@ -61,7 +62,7 @@ class PreProcessingAgent(BaseAgent):
                         inp = test_case.get('input')
                         out = test_case.get('output')
                         if inp is not None and out is not None:
-                            state.test_cases.append((inp, out))
+                            state.test_cases.append(TestCase(inp, out))
                         else:
                             self.logger.warning(
                                 'Missing input/output for test case: '
