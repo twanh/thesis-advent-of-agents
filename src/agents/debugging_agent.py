@@ -1,12 +1,24 @@
 import copy
+import json
 import os
 import subprocess
 import tempfile
+from typing import Literal
 from typing import NamedTuple
 
 from agents.base_agent import BaseAgent
 from core.state import MainState
+from models.base_model import BaseLanguageModel
 from utils.util_types import TestCase
+from utils.utils import extract_json_from_markdown
+
+MAX_CODE_FIXES = 2
+
+
+class DebugAnalysisResult(NamedTuple):
+    decision: Literal['fix_myself', 'delegate', 'no_fix']
+    fixed_code: str | None
+    suggestions: str | None
 
 
 class TestCaseResult(NamedTuple):
@@ -17,6 +29,17 @@ class TestCaseResult(NamedTuple):
 
 
 class DebuggingAgent(BaseAgent):
+
+    def __init__(
+            self,
+            agent_name: str,
+            model: BaseLanguageModel,
+            **settings: str,
+    ):
+        super().__init__(agent_name, model, **settings)
+
+        self.code_fixes = 0
+        self.delegations = 0
 
     def _run_code(
         self,
@@ -69,7 +92,7 @@ class DebuggingAgent(BaseAgent):
     def _run_test_case(self, code: str, test_case: TestCase) -> TestCaseResult:
 
         # Run the code with the test case
-        self.logger.info(f'Running code with test case: {test_case}')
+        self.logger.info('Running code with test case')
         output, errors = self._run_code(code, test_case.input_)
         self.logger.debug(
             f'Test results: {output=} {errors=} '
@@ -98,11 +121,117 @@ class DebuggingAgent(BaseAgent):
             errors=errors,
         )
 
-    def _analyze_errors(self, code: str, errors: str) -> None:
+    def _analyze_test_result(
+        self,
+        state: MainState,
+        test_case: TestCase,
+        test_result: TestCaseResult,
+    ) -> DebugAnalysisResult:
 
-        self.logger.info('Debug Agent: Analyzing errors')
+        self.logger.info('Debug Agent: Analyzing errors/outpupts')
 
-        return None
+        # Construct the input
+        inp = {
+            'problem_statement': state.problem_statement,
+            'code': state.generated_code,
+            'test_input': test_case.input_,
+            'actual_output': test_result.actual_output,
+            'expected_output': test_case.expected_output,
+            'error_message': test_result.errors,
+            'plan': state.selected_plan,
+        }
+
+        json_inp = json.dumps(inp)
+
+        # Prompt the model
+        prompt = self._get_prompt('debug_error', json_input=json_inp)
+
+        resp = self.model.prompt(prompt)
+
+        if not resp:
+            self.logger.warning('Debug Agent: Got not reponse from the model')
+
+        extracted_json = extract_json_from_markdown(resp)
+        if not extracted_json:
+            self.logger.debug(f'Got {extracted_json=} for {resp=}')
+            self.logger.warning(
+                f'Debug Agent: Could not extract json from response {resp=}',
+            )
+
+            # Return no fix
+            return DebugAnalysisResult(
+                decision='no_fix',
+                suggestions=None,
+                fixed_code=None,
+            )
+
+        try:
+            json_resp = json.loads(extracted_json[0])
+        except json.JSONDecodeError:
+            self.logger.warning(
+                'Debug Agent: Could not decode JSON from response',
+            )
+            # Return no fix
+            return DebugAnalysisResult(
+                decision='no_fix',
+                suggestions=None,
+                fixed_code=None,
+            )
+
+        decision = json_resp.get('decision')
+        reason = json_resp.get('reason')
+
+        if decision == 'fix_myself':
+            self.logger.info('Debug Agent: Fixing the code myself')
+            self.logger.debug(f'Reason to fix the code: {reason}')
+
+            # Get the fixed code
+            fixed_code = json_resp.get('fix')
+            if not fixed_code:
+                self.logger.warning(
+                    'Could not extract fixed code from response',
+                )
+                # Return no fix
+                return DebugAnalysisResult(
+                    decision='no_fix',
+                    suggestions=None,
+                    fixed_code=None,
+                )
+
+            return DebugAnalysisResult(
+                decision='fix_myself',
+                suggestions=None,
+                fixed_code=fixed_code,
+            )
+
+        elif decision == 'delegate':
+            suggestion = json_resp.get('suggestion')
+            self.logger.info('Debug Agent: Delegating the fix')
+            self.logger.debug(f'Reason to delegate the fix: {reason}')
+            if not suggestion:
+                self.logger.warning(
+                    'Could not extract suggestion from response',
+                )
+                # Return no fix
+                return DebugAnalysisResult(
+                    decision='no_fix',
+                    suggestions=None,
+                    fixed_code=None,
+                )
+
+            return DebugAnalysisResult(
+                decision='delegate',
+                suggestions=suggestion,
+                fixed_code=None,
+            )
+
+        else:
+            self.logger.warning(f'Could unseported decision {decision}')
+            return DebugAnalysisResult(
+                decision='no_fix',
+                suggestions=None,
+                fixed_code=None,
+            )
 
     def _cycle_plans(self, state: MainState) -> MainState:
 
@@ -117,6 +246,8 @@ class DebuggingAgent(BaseAgent):
         state.selected_plan = next_plan
         self.logger.info('Debug Agent: Cycling to next plan')
         self.logger.debug(f'Next plan: {next_plan}')
+        # Backtrack to coding agent
+        state.backtracking_step = 1
 
         return state
 
@@ -160,15 +291,49 @@ class DebuggingAgent(BaseAgent):
                 self.logger.warning('No output from code, switching plans.')
                 return self._cycle_plans(state)
 
-            # If there are errors analyze these errors
-            if test_result.errors is not None:
-                self._analyze_errors(state.generated_code, test_result.errors)
-            else:
-                # TODO: Analyze why output mith have been different
-                return self._cycle_plans(state)
+            # If not successful analyze the code and output/errors
+            analysis_results = self._analyze_test_result(
+                state,
+                TestCase(puzzle_input, expected_output),
+                test_result,
+            )
 
-        # TODO: Implement proper backtracking
-        # (also in orchestrator)
+            if (
+                analysis_results.decision == 'fix_myself'
+                and analysis_results.fixed_code
+            ):
+                # Prevent the model from always fixing the code itself
+                if self.code_fixes > MAX_CODE_FIXES:
+                    self.logger.warning(
+                        'Debug Agent: Too many code fixes, '
+                        'backtracking to coding.',
+                    )
+                    state.backtracking_step = 1
+                    return state
+
+                self.code_fixes += 1
+                state.generated_code = analysis_results.fixed_code
+                state.backtracking_step = 0
+                return state
+            elif (
+                analysis_results.decision == 'delegate'
+                and analysis_results.suggestions
+            ):
+                # Prevent the model from always delegating the fix
+                if self.delegations > MAX_CODE_FIXES:
+                    self.logger.warning(
+                        'Debug Agent: Too many delegations, '
+                        'cycling plans',
+                    )
+
+                    return self._cycle_plans(state)
+
+                self.delegations += 1
+                state.debug_suggestions.append(analysis_results.suggestions)
+                state.backtracking_step = 1
+                return state
+            else:
+                return self._cycle_plans(state)
 
         # Try the example test cases from the puzzle
         if len(state.test_cases) > 0:
@@ -185,14 +350,50 @@ class DebuggingAgent(BaseAgent):
                 )
 
                 if not test_result.success:
-                    if test_result.errors:
-                        self._analyze_errors(
-                            state.generated_code,
-                            test_result.errors,
-                        )
 
+                    analysis_results = self._analyze_test_result(
+                        state,
+                        test_case,
+                        test_result,
+                    )
+
+                    if (
+                        analysis_results.decision == 'fix_myself'
+                        and analysis_results.fixed_code
+                    ):
+                        # Prevent the model from always fixing the code itself
+                        if self.code_fixes > MAX_CODE_FIXES:
+                            self.logger.warning(
+                                'Debug Agent: Too many code fixes, '
+                                'backtracking to coding.',
+                            )
+                            state.backtracking_step = 1
+                            return state
+
+                        self.code_fixes += 1
+                        state.generated_code = analysis_results.fixed_code
+                        state.backtracking_step = 0
+                        return state
+                    elif (
+                        analysis_results.decision == 'delegate'
+                        and analysis_results.suggestions
+                    ):
+                        # Prevent the model from always delegating the fix
+                        if self.delegations > MAX_CODE_FIXES:
+                            self.logger.warning(
+                                'Debug Agent: Too many delegations, '
+                                'cycling plans',
+                            )
+
+                            return self._cycle_plans(state)
+
+                        self.delegations += 1
+                        state.debug_suggestions.append(
+                            analysis_results.suggestions,
+                        )
+                        state.backtracking_step = 1
+                        return state
                     else:
-                        # TODO: implement output checking
                         return self._cycle_plans(state)
 
                 else:
@@ -209,6 +410,6 @@ class DebuggingAgent(BaseAgent):
                     state.final_code = state.generated_code
             else:
                 self.logger.warning(
-                    'Test cases failed, cycling plans did not work',
+                    'Test cases failed, debugging did not work',
                 )
         return state

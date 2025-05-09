@@ -49,7 +49,8 @@ class MainState:
     # Debugging output
     final_code: str | None = None
     debug_attempts: int = 0
-    debug_errors: list[str] = field(default_factory=list)
+    debug_suggestions: list[str] = field(default_factory=list)
+    backtracking_step: int = 0
     is_solved: bool = False
 
     # General metadata

@@ -6,7 +6,7 @@ from core.state import MainState
 from loguru import logger
 from utils.util_types import AgentSettings
 
-MAX_DEBUG_ATTEMPTS = 3
+MAX_DEBUG_ATTEMPTS = 5
 
 
 class Orchestrator:
@@ -57,7 +57,7 @@ class Orchestrator:
             if current_agent_settings.enabled:
                 self.logger.info('Running agent: {}', current_agent.name)
                 state = current_agent.process(state)
-                self.logger.debug(pformat(state))
+                self.logger.trace(pformat(state))
 
             if state.is_solved:
                 self.logger.success('Puzzle solved!')
@@ -75,8 +75,10 @@ class Orchestrator:
                 state.debug_attempts += 1
                 # TODO: Should we check if the debugging agent
                 # is the one before coding?
-                self.logger.info('Backtracking by 1 step')
-                current_agent_index -= 1
+                self.logger.info(
+                    f'Backtracking by {state.backtracking_step} step',
+                )
+                current_agent_index -= state.backtracking_step
                 continue
 
             current_agent_index += 1

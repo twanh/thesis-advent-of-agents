@@ -19,4 +19,5 @@ PROMPTS = {
     'planning_step_by_step': _load_prompt_from_file('planning_step_by_step'),
     'planning_confidence': _load_prompt_from_file('planning_confidence'),
     'coding': _load_prompt_from_file('coding'),
+    'debug_error': _load_prompt_from_file('debug_error_analysis'),
 }
