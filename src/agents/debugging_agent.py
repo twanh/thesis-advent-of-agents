@@ -56,7 +56,12 @@ class DebuggingAgent(BaseAgent):
         state.is_solved = True
         return state
 
-    def _apply_fix(self, state: MainState, fixed_code: str) -> MainState:
+    def _apply_fix(
+        self,
+        state: MainState,
+        fixed_code: str,
+        suggestion: str,
+    ) -> MainState:
 
         # Check if the code is fixed
         if fixed_code == state.generated_code:
@@ -68,7 +73,7 @@ class DebuggingAgent(BaseAgent):
             self.logger.warning('Debug Agent: Maximum number of fixes reached')
             # Switch to delegation
             # but there is no suggestion since no suggestion was made
-            return self._apply_delegation(state, '')
+            return self._apply_delegation(state, suggestion)
 
         # Apply the fix
         self.logger.info('Debug Agent: Applying fix')
@@ -92,6 +97,7 @@ class DebuggingAgent(BaseAgent):
 
         # Apply the delegation
         self.logger.info('Debug Agent: Applying delegation')
+        self.logger.debug(f'Got suggestion: {suggestion}')
         state.debug_suggestions.append(suggestion)
         self.delegations += 1
         # Esnure backtracking to codeing agents
@@ -109,7 +115,11 @@ class DebuggingAgent(BaseAgent):
 
         if result.decision == DebugDecision.FIX:
             self.logger.info('Debug Agent: Fixing code')
-            return self._apply_fix(state, result.fixed_code or '')
+            return self._apply_fix(
+                state,
+                result.fixed_code or '',
+                result.suggestions or '',
+            )
         elif result.decision == DebugDecision.DELEGATE:
             self.logger.info('Debug Agent: Delegating to model')
             self.delegations += 1
@@ -214,9 +224,11 @@ class DebuggingAgent(BaseAgent):
                     fixed_code=None,
                 )
 
+            # Get the suggestions
+            suggestions = json_resp.get('suggestions', '')
             return AnalysisResult(
                 decision=DebugDecision.FIX,
-                suggestions=None,
+                suggestions=suggestions,
                 fixed_code=fixed_code,
             )
 
