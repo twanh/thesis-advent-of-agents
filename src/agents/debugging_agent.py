@@ -2,9 +2,18 @@ import copy
 import os
 import subprocess
 import tempfile
+from typing import NamedTuple
 
 from agents.base_agent import BaseAgent
 from core.state import MainState
+from utils.util_types import TestCase
+
+
+class TestCaseResult(NamedTuple):
+    success: bool
+    expected_output: str | None
+    actual_output: str | None
+    errors: str | None
 
 
 class DebuggingAgent(BaseAgent):
@@ -57,6 +66,38 @@ class DebuggingAgent(BaseAgent):
             os.remove(code_file_path)
             os.remove(input_file_path)
 
+    def _run_test_case(self, code: str, test_case: TestCase) -> TestCaseResult:
+
+        # Run the code with the test case
+        self.logger.info(f'Running code with test case: {test_case}')
+        output, errors = self._run_code(code, test_case.input_)
+        self.logger.debug(
+            f'Test results: {output=} {errors=} '
+            f'was expecting: {test_case.expected_output}',
+        )
+
+        if output == test_case.expected_output:
+            self.logger.info('Test case is successful')
+            res = TestCaseResult(
+                success=True,
+                expected_output=test_case.expected_output,
+                actual_output=output,
+                errors=errors,
+            )
+
+            return res
+
+        self.logger.warning('Test case was not successful')
+        self.logger.info(
+            f'Got: {output}, expected: {test_case.expected_output}',
+        )
+        return TestCaseResult(
+            success=False,
+            expected_output=test_case.expected_output,
+            actual_output=output,
+            errors=errors,
+        )
+
     def _analyze_errors(self, code: str, errors: str) -> None:
 
         self.logger.info('Debug Agent: Analyzing errors')
@@ -97,13 +138,11 @@ class DebuggingAgent(BaseAgent):
         expected_output = self.settings.get('expected_output', None)
         if expected_output is not None:
             self.logger.info('Debug Agent: Running code with test input')
-            actual_output, errors = self._run_code(
-                state.generated_code, puzzle_input,
+            test_result = self._run_test_case(
+                state.generated_code,
+                TestCase(puzzle_input, expected_output),
             )
-            self.logger.info(
-                f'Expected: {expected_output} got {actual_output}',
-            )
-            if actual_output == expected_output:
+            if test_result.success:
                 self.logger.success('Got expected output, puzzle is solved.')
                 # The solution generates the correct output
                 # the puzzle is solved!
@@ -114,17 +153,18 @@ class DebuggingAgent(BaseAgent):
             # If the output was None and the errors are None the subprocess
             # raised and there is not a lot of information to debug
             # this means we switch plans
-            if actual_output is None and errors is None:
+            if (
+                test_result.actual_output is None
+                and test_result.errors is None
+            ):
                 self.logger.warning('No output from code, switching plans.')
                 return self._cycle_plans(state)
 
-            if errors is not None:
-                self._analyze_errors(state.generated_code, errors)
+            if test_result.errors is not None:
+                self._analyze_errors(state.generated_code, test_result.errors)
 
             else:
                 return self._cycle_plans(state)
-
-        # Check the result on the test cases
 
         # If there are (syntax) errors:
         # Backtrack: to coding agent
