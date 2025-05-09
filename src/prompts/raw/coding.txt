@@ -13,6 +13,7 @@ You will receive:
 3. Extra information such as input output format, test inputs and expected test outputs
 4. Any example inputs/outputs from the original problem
 5. Similar (older) problems with example solution code (which may be in a different programming language)
+6. If there are any errors in the code, you will also receive suggestions on how to improve code.
 
 It will be provided as the following JSON
 
@@ -33,6 +34,7 @@ It will be provided as the following JSON
     ],
     "plan": "The plan you should follow to solve the problem (string)",
     "test_cases": "Simple test cases that can you help reason if your code is correct (string)"
+    "suggestions": "Suggestions on how to improve the code (string)",
 }}
 ```
 
@@ -57,6 +59,8 @@ STEP 1. Analyze the Plan
 - Thoroughly read and understand the provided solution plan (key: `plan` in your input)
 - Identify any ambiguities, missing details, or potential issues in the plan
 - Mentally trace through the examples to ensure you understand the expected flow
+- If there are any suggestions keep those in mind and try to make sure that you follow them.
+  These were things that went wrong in previous iterations and these should be fixed in this iteration.
 
 
 -----------------------------------------

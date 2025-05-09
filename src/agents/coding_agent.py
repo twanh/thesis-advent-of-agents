@@ -27,6 +27,7 @@ class CodingAgent(BaseAgent):
                 for i in state.retreived_puzzles
             ],
             'test_cases': state.test_cases,
+            'suggestions': ' '.join(state.debug_suggestions),
         }
 
         if state.selected_plan is None:
