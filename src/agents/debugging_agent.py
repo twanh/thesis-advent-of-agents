@@ -102,8 +102,7 @@ class DebuggingAgent(BaseAgent):
         self.delegations += 1
         # Esnure backtracking to codeing agents
         # which will look at the suggestion
-        # TODO: Implement looking at suggestion in coding agent
-        self.backtracking_step = 1
+        state.backtracking_step = 1
 
         return state
 
