@@ -428,7 +428,7 @@ class PuzzleRetreival:
                 query = """
                 SELECT id, year, day, full_description, problem_statement,
                         keywords, underlying_concepts,
-                        embedding <-> %s::vector AS distance
+                        embedding <=> %s::vector AS distance
                 FROM puzzles
                 ORDER BY distance
                 LIMIT %s;
