@@ -425,12 +425,21 @@ class PuzzleRetreival:
         with self._get_connection() as conn:
             with conn.cursor() as cur:
 
+                # query = """
+                # SELECT id, year, day, full_description, problem_statement,
+                #         keywords, underlying_concepts,
+                #         embedding <-> %s::vector AS distance
+                # FROM puzzles
+                # ORDER BY distance
+                # LIMIT %s;
+                # """
+
                 query = """
                 SELECT id, year, day, full_description, problem_statement,
-                        keywords, underlying_concepts,
-                        embedding <=> %s::vector AS distance
+                       keywords, underlying_concepts,
+                       1 - (embedding <=> %s::vector) AS similarity
                 FROM puzzles
-                ORDER BY distance
+                ORDER BY similarity DESC
                 LIMIT %s;
                 """
 
