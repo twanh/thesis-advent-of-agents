@@ -18,6 +18,7 @@ from models.gemini_model import GeminiLanguageModel
 from models.openai_model import OpenAILanguageModel
 from utils.util_types import AgentSettings
 from utils.util_types import Puzzle
+from utils.util_types import TestCase
 
 
 def _parse_args() -> argparse.Namespace:
@@ -200,6 +201,31 @@ if __name__ == '__main__':
 
     state = MainState(puzzle=puzzle)
     ret_state = orchestrator.solve_puzzle(state)
+
+    # Check if the debugging agent was disabled
+    # if not: test the code here
+    if not is_enabled('debugging'):
+        logger.info('Debugging agent was disabled, checking code')
+        # Using debugging agent under the hood because
+        # we otherwise have to reimplement the code running
+        # but skipping all debugging steps
+        dba = DebuggingAgent(
+            'debugging',
+            model=agents_models['debugging'],
+            expected_output=args.expected_output,
+            puzzle_input=puzzle_input,
+        )
+        run_result = dba._run_test(
+            ret_state.generated_code or '',
+            TestCase(
+                input_=puzzle_input,
+                expected_output=args.expected_output,
+            ),
+        )
+        if run_result.success:
+            logger.success('Code passed the test')
+            ret_state.is_solved = True
+            ret_state.final_code = ret_state.generated_code
 
     if ret_state.is_solved:
         logger.success(f'Puzzle {puzzle.year}-{puzzle.day} solved')

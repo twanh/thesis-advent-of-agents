@@ -71,7 +71,10 @@ class Orchestrator:
 
             # If the agent is the debugging agents
             # then we need to backtrack to the coding agent
-            if current_agent_settings.can_debug:
+            if (
+                current_agent_settings.can_debug
+                and current_agent_settings.enabled
+            ):
                 state.debug_attempts += 1
                 # TODO: Should we check if the debugging agent
                 # is the one before coding?
