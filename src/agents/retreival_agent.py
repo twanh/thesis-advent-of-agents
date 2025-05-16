@@ -15,7 +15,7 @@ class RetrievalAgent(BaseAgent):
             self,
             agent_name: str,
             model: BaseLanguageModel,
-            **settings: str,
+            **settings: str | None | dict[str, float],
     ):
 
         super().__init__(agent_name, model, **settings)
@@ -44,6 +44,7 @@ class RetrievalAgent(BaseAgent):
         self.puzzle_retreival = PuzzleRetreival(
             connection_string=con_string,
             openai_key=openai_key,
+            weights=self.settings.get('weights', None),
         )
 
         self.puzzle_retreival.init_db()

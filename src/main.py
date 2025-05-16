@@ -164,6 +164,8 @@ if __name__ == '__main__':
                 model=agents_models['retreival'],
                 connection_string=os.getenv('DB_CONNECTION_STRING') or '',
                 openai_key=os.getenv('OPENAI_API_KEY') or '',
+                # Use default weights
+                weights=None,
             ),
             AgentSettings(enabled=is_enabled('retreival'), can_debug=False),
         ),
