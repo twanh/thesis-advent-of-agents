@@ -65,7 +65,6 @@ class RetrievalAgent(BaseAgent):
 
         puzzles_with_solutions: list[tuple[Puzzle, str]] = []
 
-        # TODO: Should we error when no similar puzzles are found?
         for puzzle in puzzles:
             puzzle_solutions = self.puzzle_retreival.get_solutions(
                 puzzle.year,
@@ -109,8 +108,6 @@ class RetrievalAgent(BaseAgent):
             self.logger.debug(f'Model response: {ret}')
 
             if not ret:
-                # TODO: Handle this case, raise error or make
-                # sure that the other agents can handle this
                 self.logger.warning('RetreivalAgent response is empty')
                 continue
 
