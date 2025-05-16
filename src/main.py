@@ -109,7 +109,7 @@ def _get_model(model_name: str) -> BaseLanguageModel:
             api_key=os.getenv('GEMINI_API_KEY') or '',
             model_name=model_name,
         )
-    elif model_name.startswith('openai'):
+    elif model_name.startswith('openai') or model_name.startswith('gpt'):
         return OpenAILanguageModel(
             api_key=os.getenv('OPENAI_API_KEY') or '',
             model_name=model_name,
