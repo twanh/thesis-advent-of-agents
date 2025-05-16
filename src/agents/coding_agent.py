@@ -50,8 +50,7 @@ class CodingAgent(BaseAgent):
             self.logger.warning(
                 'Coding Agent: Got no response from the model.',
             )
-            # TODO Implement retry
-            return state
+            return self._invalid_response_retry(state)
 
         # Try to extract the json from the response
         json_resp = extract_json_from_markdown(resp)
