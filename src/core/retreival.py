@@ -166,6 +166,11 @@ class PuzzleRetreival:
 
         self.logger.trace(f'Creating embedding for {text=}')
 
+        # Check that the text is not empty
+        if not text:
+            self.logger.warning('Empty text provided for embedding.')
+            text = ' '
+
         response = self.client.embeddings.create(
             input=text,
             model='text-embedding-3-small',
