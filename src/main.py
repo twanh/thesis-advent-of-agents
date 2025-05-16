@@ -168,7 +168,12 @@ if __name__ == '__main__':
             AgentSettings(enabled=is_enabled('retreival'), can_debug=False),
         ),
         (
-            PlanningAgent('planning', model=agents_models['planning']),
+            # TODO: Make n_plans commandline argument?
+            PlanningAgent(
+                'planning',
+                model=agents_models['planning'],
+                n_plans=3,
+            ),
             AgentSettings(enabled=is_enabled('planning'), can_debug=False),
         ),
         (

@@ -122,9 +122,12 @@ class PlanningAgent(BaseAgent):
         plans: list[SolutionPlan] = []
         highest_plan = None
         highest_score = 0
-        # TODO: Make the amount of plans generated a setting.
-        for i in range(3):
-            self.logger.info(f'Creating plan {i+1}/3')
+
+        n_plans = self.settings.get('n_plans', 3)
+        self.logger.info(f'Generating {n_plans} plans')
+
+        for i in range(n_plans):
+            self.logger.info(f'Creating plan {i+1}/{n_plans}')
             plan = self._generate_solution_plan(step_by_step_prompt)
             if plan.confidence >= highest_score:
                 highest_score = plan.confidence
