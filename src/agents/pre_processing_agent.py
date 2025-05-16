@@ -26,7 +26,7 @@ class PreProcessingAgent(BaseAgent):
         # Check if the response is empty
         if not ret:
             self.logger.warning('Preprocessing agent response is empty')
-            return state
+            return self._invalid_response_retry(state)
 
         # Get the json from the markdown response
         extracted_json = extract_json_from_markdown(ret)
@@ -74,5 +74,6 @@ class PreProcessingAgent(BaseAgent):
 
         except json.JSONDecodeError as e:
             self.logger.error(f'Error parsing JSON: {e}')
+            state = self._invalid_response_retry(state)
 
         return state

@@ -34,19 +34,34 @@ class PlanningAgent(BaseAgent):
         # Prompt the model and handle the response
         ret = self.model.prompt(prompt)
         if not ret:
-            self.logger.warning('No return from model, return default 0.0')
+            self.logger.warning('No return from model')
+            if self.invalid_response_retries < self.max_invalid_response_retries:  # noqa: E501
+                self.logger.warning(
+                    'Retrying confidence score extraction',
+                )
+                return self._get_confidence_score(plan)
             return 0.0
 
         self.logger.debug(f'Confidence return: {ret}')
         json_resp = extract_json_from_markdown(ret)
         if not len(json_resp) > 0:
             self.logger.warning('Did not receive json back from model')
+            if self.invalid_response_retries < self.max_invalid_response_retries:  # noqa: E501
+                self.logger.warning(
+                    'Retrying confidence score extraction',
+                )
+                return self._get_confidence_score(plan)
             return 0.0
 
         try:
             confidence_score = json.loads(json_resp[0])
         except json.JSONDecodeError as e:
             self.logger.warning(f'Could not decode json, {e}')
+            if self.invalid_response_retries < self.max_invalid_response_retries:  # noqa: E501
+                self.logger.warning(
+                    'Retrying confidence score extraction',
+                )
+                return self._get_confidence_score(plan)
             return 0.0
 
         return float(confidence_score.get('confidence', 0.0))
@@ -67,15 +82,22 @@ class PlanningAgent(BaseAgent):
 
         # Check if the response is empty
         if not ret:
-            # TODO: Perhaps retry here?
             self.logger.warning('Planning agent response is empty')
+
+            if self.invalid_response_retries < self.max_invalid_response_retries:  # noqa: E501
+                self.logger.warning(
+                    'Retrying planning agent response',
+                )
+                return self._generate_solution_plan(prompt)
+
+            # If the response is empty, return an empty plan
             return SolutionPlan('', 0)
 
         generated_plan = extract_markdown_from_response(ret)
         if not generated_plan:
             self.logger.warning(
                 'Could not extract markdown plan from response.'
-                f'{generated_plan=}',
+                f'{generated_plan=} {ret=}',
             )
             # If the response is not empty, assume the full body is the
             # markdown plan

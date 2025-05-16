@@ -60,7 +60,7 @@ class CodingAgent(BaseAgent):
             self.logger.warning(
                 f'Coding Agent: Could not extract json from response {resp=}',
             )
-            return state
+            state = self._invalid_response_retry(state)
 
         try:
             obj = json.loads(json_resp[0])
@@ -68,10 +68,10 @@ class CodingAgent(BaseAgent):
             state.generated_code = obj.get('code')
             if state.generated_code is None:
                 self.logger.warning('No code was found in resp json')
-                return state
+                return self._invalid_response_retry(state)
+
         except json.JSONDecodeError as e:
             self.logger.warning(f'Could not decode JSON, {e=}')
-            # TODO: Retry?
-            return state
+            state = self._invalid_response_retry(state)
 
         return state

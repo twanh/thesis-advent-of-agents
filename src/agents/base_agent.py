@@ -21,6 +21,12 @@ class BaseAgent(ABC):
         self.name = agent_name
         self.model = model
         self.logger = logger.bind(agent_name=agent_name)
+        # Sometimes the (json) response is invalid
+        # so we have to retry a few times
+        # NOTE: The retries are for all errors that need retries
+        #       so there is a hard MAX of 3 retries
+        self.invalid_response_retries = 0
+        self.max_invalid_response_retries = 3
         self.settings = settings
 
     def _get_prompt(self, prompt_name: str, **kwargs) -> str:
@@ -37,6 +43,31 @@ class BaseAgent(ABC):
             formatted_prompt = ''
 
         return formatted_prompt
+
+    def _invalid_response_retry(self, state: MainState) -> MainState:
+        """
+        Retry the agent if the response is invalid.
+
+        Args:
+            state (dict): The state to process.
+
+        Returns:
+            dict: The updated state after the agent's processing.
+        """
+
+        self.invalid_response_retries += 1
+        if self.invalid_response_retries > self.max_invalid_response_retries:
+            self.logger.error(
+                f'Max retries reached for {self.name}. '
+                'Returning original state.',
+            )
+            return state
+
+        self.logger.warning(
+            f'Retrying {self.invalid_response_retries}/{self.max_invalid_response_retries} for {self.name}',  # noqa: E501
+        )
+        # Retry the agent
+        return self.process(state)
 
     @abstractmethod
     def process(self, state: MainState) -> MainState:

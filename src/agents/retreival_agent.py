@@ -120,19 +120,8 @@ class RetrievalAgent(BaseAgent):
                 data = json.loads(extracted[0])
                 self.logger.trace(f'Extracted {extracted} json from response')
             except json.JSONDecodeError as e:
-                self.logger.warning('Could not decode json: ', e)
-                # TODO: Do not hardcode n retries
-                if self.retries < 3:
-                    self.logger.info(
-                        f'Retrying retreival agent {self.retries}/3',
-                    )
-                    self.retries += 1
-                    return self.process(state)
-                else:
-                    self.logger.error(
-                        'Could not decode json after 3 retries',
-                    )
-                    raise ValueError('Could not decode json', e)
+                self.logger.warning(f'Could not decode json: {e=}')
+                return self._invalid_response_retry(state)
 
             # Get the top ranked solution for the current puzzle
             ranked_sols = data.get('ranked_solutions', [])
