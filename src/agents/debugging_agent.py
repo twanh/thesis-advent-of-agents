@@ -341,8 +341,11 @@ class DebuggingAgent(BaseAgent):
             f'was expecting: {test_case.expected_output}',
         )
 
-        if output == test_case.expected_output:
-            self.logger.info('Test case is successful')
+        if str(output) == str(test_case.expected_output):
+            self.logger.info(
+                'Test case is successful'
+                f'{output}={test_case.expected_output}',
+            )
             res = TestCaseResult(
                 success=True,
                 expected_output=test_case.expected_output,
