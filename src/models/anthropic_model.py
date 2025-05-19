@@ -31,13 +31,19 @@ class AnthropicLanguageModel(BaseLanguageModel):
                 max_tokens=1024,
             )
 
-            if response.content is None:
+            if not response.content:
                 self.logger.warning(
                     'Received unexpected None response from Anthropic',
                 )
                 return ''
 
-            return response.content
+            if not hasattr(response.content[0], 'text'):
+                self.logger.debug(
+                    f'No text in response content: {response.content}',
+                )
+                return ''
+
+            return getattr(response.content[0], 'text')
 
         except Exception as e:
             self.logger.error(f'Error while prompting {self}: {e}')

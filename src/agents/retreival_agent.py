@@ -114,6 +114,11 @@ class RetrievalAgent(BaseAgent):
             # Extract json
             extracted = extract_json_from_markdown(ret)
             try:
+                if len(extracted) < 1:
+                    self.logger.warning(
+                        f'Did not find any json in the response, {extracted=}',
+                    )
+                    return self._invalid_response_retry(state)
                 data = json.loads(extracted[0])
                 self.logger.trace(f'Extracted {extracted} json from response')
             except json.JSONDecodeError as e:

@@ -12,6 +12,7 @@ from core.orchestrator import Orchestrator
 from core.state import MainState
 from dotenv import load_dotenv
 from loguru import logger
+from models.anthropic_model import AnthropicLanguageModel
 from models.base_model import BaseLanguageModel
 from models.deepseek_model import DeepseekLanguageModel
 from models.gemini_model import GeminiLanguageModel
@@ -122,6 +123,11 @@ def _get_model(model_name: str) -> BaseLanguageModel:
     elif model_name.startswith('deepseek'):
         return DeepseekLanguageModel(
             api_key=os.getenv('DEEPSEEK_API_KEY') or '',
+            model_name=model_name,
+        )
+    elif model_name.startswith('anthropic') or model_name.startswith('claude'):
+        return AnthropicLanguageModel(
+            api_key=os.getenv('ANTHROPIC_API_KEY') or '',
             model_name=model_name,
         )
 
