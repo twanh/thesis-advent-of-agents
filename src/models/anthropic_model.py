@@ -28,7 +28,7 @@ class AnthropicLanguageModel(BaseLanguageModel):
                         'content': text,
                     },
                 ],
-                max_tokens=1024,
+                max_tokens=8192,
             )
 
             if not response.content:

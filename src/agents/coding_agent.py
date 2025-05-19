@@ -62,6 +62,12 @@ class CodingAgent(BaseAgent):
             state = self._invalid_response_retry(state)
 
         try:
+            if len(json_resp) < 1:
+                self.logger.warning(
+                    f'Coding Agent: No json found in response {json_resp=}',
+                )
+                return self._invalid_response_retry(state)
+
             obj = json.loads(json_resp[0])
             # NOTE: Is this the correct way to indicate no code is found?
             state.generated_code = obj.get('code')
