@@ -11,15 +11,34 @@ class AnthropicLanguageModel(BaseLanguageModel):
 
     def prompt(self, text: str) -> str:
 
-        response = self.client.messages.create(
-            model=self.model_name,
-            messages=[
-                {
-                    'role': 'user',
-                    'content': text,
-                },
-            ],
-            max_tokens=1024,
-        )
+        try:
 
-        return response.content
+            self.logger.debug(
+                (
+                    f'Prompting {self} with prompt: '
+                    f'{self.system_prompt=} {text=}'
+                ),
+            )
+
+            response = self.client.messages.create(
+                model=self.model_name,
+                messages=[
+                    {
+                        'role': 'user',
+                        'content': text,
+                    },
+                ],
+                max_tokens=1024,
+            )
+
+            if response.content is None:
+                self.logger.warning(
+                    'Received unexpected None response from Anthropic',
+                )
+                return ''
+
+            return response.content
+
+        except Exception as e:
+            self.logger.error(f'Error while prompting {self}: {e}')
+            return ''
