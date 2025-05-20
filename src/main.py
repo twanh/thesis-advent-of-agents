@@ -114,7 +114,8 @@ def _get_model(model_name: str) -> BaseLanguageModel:
     elif (
         model_name.startswith('openai') or
         model_name.startswith('gpt') or
-        model_name.startswith('o3')
+        model_name.startswith('o3') or
+        model_name.startswith('o4')
     ):
         return OpenAILanguageModel(
             api_key=os.getenv('OPENAI_API_KEY') or '',
