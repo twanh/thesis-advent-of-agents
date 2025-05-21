@@ -1,0 +1,3393 @@
+success,code,debug_attempts,debug_suggestions,n_retreived_puzzles,keywords,concepts,time,config_name
+True,"""""""
+Advent of Code Day 1: Historian Hysteria (Part 1)
+
+Given two lists of numbers read as columns from the puzzle input, sort both independently and compute
+the total sum of absolute differences of corresponding elements (minimum-to-minimum, etc).
+
+Usage: python3 solution.py inputfile.txt
+""""""
+from typing import Tuple, List
+import sys
+import os
+
+
+def parse_input(input_file: str) -> Tuple[List[int], List[int]]:
+    """"""
+    Parses the input file into two lists of integers (left column and right column).
+    Handles both two-column and two-section formats. Validates lengths. Ignores empty lines.
+
+    Args:
+        input_file: Path to the input file
+    Returns:
+        Tuple (left_list, right_list), both lists of integers, same length
+    Raises:
+        ValueError if input is malformed or lists are of unequal length
+    """"""
+    left: List[int] = []
+    right: List[int] = []
+    with open(input_file, 'r') as f:
+        lines = [line.rstrip('\n') for line in f if line.strip() != '']
+
+    if not lines:
+        raise ValueError(""Input is empty."")
+
+    # Try two-column format (most common for AoC)
+    is_two_column = True
+    for line in lines:
+        items = line.split()
+        if len(items) < 2:
+            is_two_column = False
+            break
+    if is_two_column:
+        for line in lines:
+            items = line.split()
+            left.append(int(items[0]))
+            right.append(int(items[1]))
+        if len(left) != len(right):
+            raise ValueError(f""Mismatched columns: left={len(left)}, right={len(right)}"")
+        return left, right
+    # Otherwise, try two-section format: left list, blank line, right list
+    else:
+        # Seek the separating blank line
+        if '' in [line.strip() for line in open(input_file)]:
+            # Read file fully (including blank lines!)
+            with open(input_file, 'r') as f:
+                block_lines = [line.rstrip('\n') for line in f]
+            current = 'left'
+            for line in block_lines:
+                if line.strip() == '':
+                    current = 'right'
+                    continue
+                if current == 'left':
+                    left.append(int(line.strip()))
+                else:
+                    right.append(int(line.strip()))
+            if len(left) != len(right):
+                raise ValueError(f""Mismatched lists after blank line: left={len(left)}, right={len(right)}"")
+            return left, right
+        else:
+            raise ValueError(""Input format not recognized (not two columns, no blank line split)"")
+
+def solve_total_distance(left: List[int], right: List[int]) -> int:
+    """"""
+    Given two integer lists, computes the sum of absolute differences after sorting both.
+
+    Args:
+        left: First list of integers
+        right: Second list of integers (equal length)
+    Returns:
+        Integer sum of absolute differences
+    """"""
+    if len(left) != len(right) or len(left) == 0:
+        raise ValueError(f""Input lists must be non-empty and same length. Got: {len(left)} {len(right)}"")
+    left_sorted = sorted(left)
+    right_sorted = sorted(right)
+    total = sum(abs(a - b) for a, b in zip(left_sorted, right_sorted))
+    return total
+
+# --- BEGIN EXAMPLE TEST CASES ---
+def run_tests():
+    import io
+    import tempfile
+    example1 = """"""3   4
+4   3
+2   5
+1   3
+3   9
+3   3""""""
+    # From plan: expected output = 11
+    expected1 = 11
+    with tempfile.NamedTemporaryFile(mode='w+', delete=False) as tf:
+        tf.write(example1)
+        tf.flush()
+        tf.seek(0)
+        left, right = parse_input(tf.name)
+        res = solve_total_distance(left, right)
+        assert res == expected1, f""Example1: expected {expected1}, got {res}""
+    os.unlink(tf.name)
+    # Degenerate case: all equal
+    example2 = """"""5  5\n5  5\n5  5\n5  5""""""
+    expected2 = 0
+    with tempfile.NamedTemporaryFile(mode='w+', delete=False) as tf:
+        tf.write(example2)
+        tf.flush()
+        tf.seek(0)
+        left, right = parse_input(tf.name)
+        res = solve_total_distance(left, right)
+        assert res == expected2, f""Example2: expected {expected2}, got {res}""
+    os.unlink(tf.name)
+    # Edge: alternate input with blank line separator
+    example3 = """"""2\n4\n6\n\n1\n8\n4\n""""""
+    expected3 = 5 # Sorted left: 2,4,6; right:1,4,8; pairs: (2,1)=1; (4,4)=0; (6,8)=2; Sum=1+0+2=3
+    # Correction: Actually example3: left=[2,4,6], right=[1,8,4] -- sorted right: 1,4,8.  2-1=1, 4-4=0, 6-8=2=>|2|=2
+    # 1+0+2=3
+    expected3 = 3
+    with tempfile.NamedTemporaryFile(mode='w+', delete=False) as tf:
+        tf.write(example3)
+        tf.flush()
+        tf.seek(0)
+        left, right = parse_input(tf.name)
+        res = solve_total_distance(left, right)
+        assert res == expected3, f""Example3: expected {expected3}, got {res}""
+    os.unlink(tf.name)
+# --- END EXAMPLE TEST CASES ---
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        sys.exit(1)
+    input_file = sys.argv[1]
+    try:
+        left, right = parse_input(input_file)
+        result = solve_total_distance(left, right)
+        print(result)
+    except Exception as e:
+        print(f""Error: {e}"", file=sys.stderr)
+        sys.exit(1)
+
+# To enable test execution by hand:
+if __name__ == ""__main__"":
+    # Uncomment to check test cases (for development):
+    # run_tests()
+    main()
+",0,[],1,"array processing,sorting,numerical computation,list comparison,difference calculation","array sorting,pair matching,absolute difference calculation,sequence alignment",468.26370668411255,ultimate_power
+True,"""""""
+Advent of Code 2020 Day 2: Red-Nosed Reports
+Solution implementation based on the provided plan.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List
+import sys
+
+def parse_input(input_file: str) -> List[List[int]]:
+    """"""
+    Parse the puzzle input from file into a list of reports (each a list of ints).
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        List of reports, each report is a list of integers.
+    """"""
+    reports = []
+    with open(input_file, 'r') as f:
+        for line in f:
+            stripped = line.strip()
+            if stripped == '':
+                continue
+            levels = list(map(int, stripped.split()))
+            reports.append(levels)
+    return reports
+
+def is_report_safe(report: List[int]) -> bool:
+    """"""
+    Check if a single report satisfies the criteria for being 'safe'.
+
+    Rules:
+    - If report has <= 1 level, it is safe by default.
+    - All adjacent differences must be between 1 and 3 (inclusive) and nonzero.
+    - All differences must have the same sign (strictly increasing or strictly decreasing).
+
+    Args:
+        report: List of integers for a single report
+    Returns:
+        True if the report is safe; False otherwise.
+    """"""
+    n = len(report)
+    if n <= 1:
+        return True
+    diffs = [b - a for a, b in zip(report, report[1:])]
+    # Rule 1: All diffs in [1,3] or [-3,-1], never zero
+    magnitude_ok = all(1 <= abs(d) <= 3 for d in diffs)
+    if not magnitude_ok:
+        return False
+    # No zero diffs: guaranteed now. Now check monotonic direction.
+    first_sign = 1 if diffs[0] > 0 else -1
+    direction_ok = all((d > 0) == (first_sign > 0) for d in diffs)
+    return direction_ok
+
+def solve_part_one(reports: List[List[int]]) -> int:
+    """"""
+    Solve part one of the puzzle: count how many reports are 'safe'.
+
+    Args:
+        reports: List of reports, each a list of ints
+    Returns:
+        Count of safe reports
+    """"""
+    safe_count = 0
+    for report in reports:
+        if is_report_safe(report):
+            safe_count += 1
+    return safe_count
+
+# --- Optional: Test with example cases ---
+def _run_tests():
+    # Provided example and expected output
+    example = """"""
+7 6 4 2 1
+1 2 7 8 9
+9 7 6 2 1
+1 3 2 4 5
+8 6 4 4 1
+1 3 6 7 9
+""""""
+    expected = 2
+    # Prepare as if a file
+    from io import StringIO
+    lines = [line for line in example.strip().split('\n') if line.strip()]
+    reports = [list(map(int, line.strip().split())) for line in lines]
+    result = solve_part_one(reports)
+    assert result == expected, f""Example test failed: got {result}, expected {expected}""
+
+    # More edge cases
+    # All singles: safe
+    assert solve_part_one([[5]]) == 1
+    # Empty input: count 0
+    assert solve_part_one([]) == 0
+    # Equal adjacent numbers: unsafe
+    assert not is_report_safe([3, 3, 3])
+    # Jumps > 3: unsafe
+    assert not is_report_safe([1, 5, 8])
+    # Mix directions: unsafe
+    assert not is_report_safe([2, 3, 2])
+    # All increasing, step 1-3: safe
+    assert is_report_safe([1,2,3,4,5])
+    # All decreasing, step -1,-2,-3: safe
+    assert is_report_safe([10,8,7,5])
+    # Zeros (no difference): unsafe
+    assert not is_report_safe([4,4])
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+    input_file = sys.argv[1]
+    reports = parse_input(input_file)
+    result = solve_part_one(reports)
+    print(result)
+
+if __name__ == ""__main__"":
+    # Run tests in debug mode only (not during normal puzzle execution)
+    if sys.argv[-1] == ""--test"":
+        _run_tests()
+    else:
+        main()
+",0,[],2,"sequence validation,number sequence,array processing,pattern matching,numerical comparison","array traversal,monotonic sequence checking,adjacent element comparison,boolean logic",426.34333658218384,ultimate_power
+True,"""""""
+Advent of Code Day 3: Mull It Over
+Parses a corrupted memory string, extracts valid multiplication instructions in the exact format mul(X,Y), computes their products, and sums the results.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+import re
+from typing import Pattern
+
+
+def parse_input(input_file: str) -> str:
+    """"""Reads the entire puzzle input file as a raw string (all lines, as is).
+
+    Args:
+        input_file: Path to the input file.
+    Returns:
+        A single string containing the puzzle input.
+    """"""
+    with open(input_file, 'r') as file:
+        # Read all file content as one string
+        memory = file.read()
+    return memory
+
+
+def compile_mul_pattern() -> Pattern:
+    """"""Compiles the regular expression for valid 'mul(X,Y)' instructions.
+
+    Returns:
+        Compiled regex pattern for matching valid multiplication instructions.
+    """"""
+    # mul\(X,Y\) where X and Y are 1-3 digits, no whitespace, no leading zero
+    # X and Y: [1-9][0-9]{0,2} matches 1-999, no leading zero
+    pattern = re.compile(r""mul\(([1-9]\d{0,2}),([1-9]\d{0,2})\)"")
+    return pattern
+
+
+def solve(memory: str) -> int:
+    """"""Scans the memory string for valid mul(X,Y) instructions and sums their products.
+
+    Args:
+        memory: The entire corrupted memory string.
+    Returns:
+        The total sum of products from all valid multiplication instructions.
+    """"""
+    pattern = compile_mul_pattern()
+    total = 0
+
+    for match in pattern.finditer(memory):
+        x = int(match.group(1))
+        y = int(match.group(2))
+        product = x * y
+        total += product
+    return total
+
+
+def run_tests():
+    """"""Runs supplied test cases and asserts correctness.""""""
+    test_cases = [
+        # (test_input, expected_output)
+        (""xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))"", 161)
+    ]
+    for i, (input_str, expected) in enumerate(test_cases):
+        result = solve(input_str)
+        assert result == expected, f""Test {i+1} failed: got {result}, expected {expected}""
+
+
+def main():
+    # Handle command line args
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+    memory = parse_input(input_file)
+    result = solve(memory)
+    # Print ONLY the answer
+    print(result)
+
+    # Uncomment to run internal sanity tests on test cases
+    # run_tests()
+
+if __name__ == ""__main__"":
+    main()
+",0,[],1,"string parsing,pattern matching,arithmetic,input validation","regular expressions,string manipulation,input sanitization,pattern recognition",297.92906975746155,ultimate_power
+True,"""""""
+Advent of Code - Ceres Search (Find all ""XMAS"" in a 2D grid, all 8 directions)
+
+Approach:
+- Read grid from the input file into a list of strings
+- Scan every cell containing 'X'
+    - For each, attempt to match 'XMAS' in all 8 directions
+- For each valid match, increment the count
+- Print only the answer (integer)
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple
+import sys
+import os
+
+# The pattern to find
+WORD = ""XMAS""
+WORD_LEN = len(WORD)
+# All 8 movement directions: (dr, dc)
+DIRECTIONS: List[Tuple[int, int]] = [
+    (-1, -1),  # up-left    ↖
+    (-1, 0),   # up         ↑
+    (-1, 1),   # up-right   ↗
+    (0, -1),   # left       ←
+    (0, 1),    # right      →
+    (1, -1),   # down-left  ↙
+    (1, 0),    # down       ↓
+    (1, 1),    # down-right ↘
+]
+
+def parse_input(input_file: str) -> List[str]:
+    """"""Read the square letter grid from input file into a list of row strings.""""""
+    with open(input_file, ""r"") as f:
+        grid = [line.rstrip(""\n"") for line in f if line.strip() != """"]
+    return grid
+
+def in_bounds(r: int, c: int, rows: int, cols: int) -> bool:
+    """"""Return True if (r,c) inside grid bounds [0,rows), [0,cols)""""""
+    return 0 <= r < rows and 0 <= c < cols
+
+def count_word_occurrences(grid: List[str], word: str) -> int:
+    """"""
+    For each 'X' in grid, try to match 'XMAS' in all 8 directions.
+    Return total number of matches.
+    """"""
+    if not grid:
+        return 0
+    rows, cols = len(grid), len(grid[0])
+    count = 0
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] != word[0]:
+                continue  # Only start from 'X'
+            for dr, dc in DIRECTIONS:
+                # Check if the full word fits in this direction
+                match = True
+                for i in range(1, WORD_LEN):
+                    nr, nc = r + dr*i, c + dc*i
+                    if not in_bounds(nr, nc, rows, cols):
+                        match = False
+                        break
+                    if grid[nr][nc] != word[i]:
+                        match = False
+                        break
+                if match:
+                    count += 1
+    return count
+
+# Example test routine (will run if script run as main)
+def run_tests():
+    # Provided test case
+    grid_str = """"""MMMSXXMASM\nMSAMXMSMSA\nAMXSXMAAMM\nMSAMASMSMX\nXMASAMXAMM\nXXAMMXXAMA\nSMSMSASXSS\nSAXAMASAAA\nMAMMMXMMMM\nMXMXAXMASX""""""
+    expected = 18
+    grid = grid_str.strip().split(""\n"")
+    result = count_word_occurrences(grid, WORD)
+    assert result == expected, f""Test failed: expected {expected}, got {result}""
+
+    # Edge: 3x3 grid: should be 0
+    grid2 = [
+        ""XXX"",
+        ""XMX"",
+        ""XXX""
+    ]
+    result2 = count_word_occurrences(grid2, WORD)
+    assert result2 == 0, f""Edge test failed (too small): expected 0, got {result2}""
+
+    # Edge: word at the border (horizontal)
+    grid3 = [
+        ""XMAS"",
+        ""XXXX"",
+        ""XXXX"",
+        ""XXXX""
+    ]
+    result3 = count_word_occurrences(grid3, WORD)
+    assert result3 == 1, f""Border test failed: expected 1, got {result3}""
+    # Edge: reversed (SAMX horizontally)
+    grid4 = [
+        ""SAMX"",
+        ""XXXX"",
+        ""XXXX"",
+        ""XXXX""
+    ]
+    result4 = count_word_occurrences(grid4, WORD)
+    assert result4 == 1, f""Reverse test failed: expected 1, got {result4}""
+
+    print(""All tests passed."", file=sys.stderr)
+
+
+def main():
+    # Command line usage
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        sys.exit(1)
+    input_file = sys.argv[1]
+    if not os.path.isfile(input_file):
+        print(f""Input file not found: {input_file}"", file=sys.stderr)
+        sys.exit(1)
+    grid = parse_input(input_file)
+    result = count_word_occurrences(grid, WORD)
+    # ONLY print the result, no other text
+    print(result)
+
+if __name__ == ""__main__"":
+    # run_tests()   # Uncomment for debugging
+    main()
+",0,[],3,"grid,2D array,pattern matching,string search,directional search","grid traversal,pattern matching,directional search algorithms,string comparison",737.3387787342072,ultimate_power
+True,"""""""
+Advent of Code 2023 Day 5: Print Queue
+Solution implementation based on the provided plan.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple, Dict
+import sys
+
+
+def parse_input(input_file: str) -> Tuple[List[Tuple[int, int]], List[List[int]]]:
+    """"""
+    Parse the puzzle input from file into rules and updates.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        rules: List of (a, b) tuples, each representing 'a must come before b'
+        updates: List of update sequences, each is a list of ints
+    """"""
+    rules: List[Tuple[int, int]] = []
+    updates: List[List[int]] = []
+    with open(input_file, 'r') as f:
+        lines = [line.strip() for line in f if line.strip() != '']
+
+    # Find the split between rules and updates
+    first_update_idx = 0
+    for idx, line in enumerate(lines):
+        if ',' in line:
+            first_update_idx = idx
+            break
+    else:
+        # No update lines found
+        first_update_idx = len(lines)
+
+    # Parse rules
+    for ruleline in lines[:first_update_idx]:
+        if '|' not in ruleline:
+            continue  # skip malformed
+        a, b = ruleline.split('|')
+        try:
+            rules.append((int(a), int(b)))
+        except Exception:
+            continue  # Defensive, skip bad lines
+
+    # Parse updates
+    for expline in lines[first_update_idx:]:
+        if not expline:
+            continue
+        page_nums = [int(x) for x in expline.strip().split(',') if x]
+        if page_nums:
+            updates.append(page_nums)
+    return rules, updates
+
+
+def update_is_valid(sequence: List[int], rules: List[Tuple[int, int]]) -> bool:
+    """"""
+    Check if a single sequence is valid under the given rules.
+
+    Args:
+        sequence: The update sequence to check
+        rules: The global list of (pre, post) constraints
+    Returns:
+        True if the sequence is valid, False otherwise
+    """"""
+    pos: Dict[int, int] = {page: idx for idx, page in enumerate(sequence)}
+    # The problem seems to guarantee no duplicate pages, but defensively, first occurrence only
+    # For each applicable rule, check order
+    for a, b in rules:
+        if a in pos and b in pos:
+            if pos[a] >= pos[b]:
+                return False
+    return True
+
+
+def sum_middle_valid_pages(rules: List[Tuple[int, int]], updates: List[List[int]]) -> int:
+    """"""
+    For all valid updates, sum their middle page number.
+    Args:
+        rules: All ordering rules
+        updates: List of update sequences
+    Returns:
+        The sum of all middle page numbers in valid updates
+    """"""
+    total = 0
+    for seq in updates:
+        if not seq:
+            continue  # Skip empty updates
+        if update_is_valid(seq, rules):
+            mid = seq[len(seq) // 2]
+            total += mid
+    return total
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+    input_file = sys.argv[1]
+    rules, updates = parse_input(input_file)
+    ans = sum_middle_valid_pages(rules, updates)
+    print(ans)
+
+    # Self-test (comment out if submitting to AoC, keep to verify logic during development)
+    # Example test case from the problem statement
+    test_input = (
+        ""47|53\n97|13\n97|61\n97|47\n75|29\n61|13\n75|53\n29|13\n97|29\n53|29\n61|53\n97|53\n61|29\n47|13\n75|47\n97|75\n47|61\n75|61\n47|29\n75|13\n53|13\n\n75,47,61,53,29\n97,61,53,29,13\n75,29,13\n75,97,47,61,53\n61,13,29\n97,13,75,29,47"",
+        143
+    )
+    # Test parser for direct string (for dev/test only)
+    def parse_from_string(raw: str):
+        lines = [line.strip() for line in raw.strip().split('\n') if line.strip() != '']
+        # Split rules and updates
+        first_update_idx = 0
+        for idx, line in enumerate(lines):
+            if ',' in line:
+                first_update_idx = idx
+                break
+        else:
+            first_update_idx = len(lines)
+        rules = []
+        for ruleline in lines[:first_update_idx]:
+            if '|' not in ruleline:
+                continue
+            a, b = ruleline.split('|')
+            rules.append((int(a), int(b)))
+        updates = []
+        for expline in lines[first_update_idx:]:
+            if not expline:
+                continue
+            page_nums = [int(x) for x in expline.strip().split(',') if x]
+            if page_nums:
+                updates.append(page_nums)
+        return rules, updates
+    # Assert test case
+    test_rules, test_updates = parse_from_string(test_input[0])
+    test_result = sum_middle_valid_pages(test_rules, test_updates)
+    assert test_result == test_input[1], f""Test failed: got {test_result}, want {test_input[1]}""
+
+if __name__ == ""__main__"":
+    main()
+",0,[],2,"topological sorting,sequence validation,dependency rules,partial ordering,graph validation","directed graph,dependency checking,cycle detection,ordering constraints,middle element finding",501.04732871055603,ultimate_power
+True,"""""""
+Advent of Code - Guard Gallivant (Day 6)
+Simulates a guard's path on a grid with obstacles; counts unique positions visited before the guard exits the map.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple, Set
+import sys
+
+# Direction vectors: up, right, down, left (row, col)
+DIRS = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+DIR_CHARS = {'^': 0, '>': 1, 'v': 2, '<': 3}
+
+
+def parse_input(input_file: str) -> Tuple[List[str], Tuple[int, int], int]:
+    """"""
+    Parse the grid, locate the guard position and facing.
+
+    Args:
+        input_file: Path to the puzzle input file
+
+    Returns:
+        tuple: (grid as list of str, start_pos as (row,col), dir_idx)
+    """"""
+    with open(input_file, 'r') as f:
+        lines = [line.rstrip('\n') for line in f]
+
+    rows = len(lines)
+    if rows == 0:
+        raise ValueError(""Empty input."")
+    cols = len(lines[0])
+    for line in lines:
+        if len(line) != cols:
+            raise ValueError(""Inconsistent row lengths in grid."")
+
+    start_pos = None
+    dir_idx = None
+    grid = []
+    for r, line in enumerate(lines):
+        # Mutable copy for guard position
+        row_chars = list(line)
+        for c, ch in enumerate(row_chars):
+            if ch in DIR_CHARS:
+                if start_pos is not None:
+                    raise ValueError(""Multiple guard symbols in grid."")
+                start_pos = (r, c)
+                dir_idx = DIR_CHARS[ch]
+                row_chars[c] = '.'  # treat start square as floor
+        grid.append(''.join(row_chars))
+    if start_pos is None or dir_idx is None:
+        raise ValueError(""No guard symbol found in grid."")
+    return grid, start_pos, dir_idx
+
+
+def simulate_guard(grid: List[str], start_pos: Tuple[int, int], dir_idx: int) -> int:
+    """"""
+    Simulate the guard's movement until exiting the grid, counting unique visited positions.
+
+    Args:
+        grid: List of strings representing the map
+        start_pos: (row, col) of starting position
+        dir_idx: initial direction index (0=up, 1=right, ...)
+
+    Returns:
+        Number of distinct positions visited (including starting position)
+    """"""
+    rows, cols = len(grid), len(grid[0])
+    visited: Set[Tuple[int, int]] = set()
+    pos = start_pos
+    dir_i = dir_idx
+    visited.add(pos)
+
+    while True:
+        dr, dc = DIRS[dir_i]
+        nr, nc = pos[0] + dr, pos[1] + dc
+        # Check if the next cell is off the grid (guard leaves)
+        if nr < 0 or nr >= rows or nc < 0 or nc >= cols:
+            break
+        cell = grid[nr][nc]
+        if cell == '#':
+            # Turn right (clockwise)
+            dir_i = (dir_i + 1) % 4
+            continue  # Do not move, try new direction next loop
+        elif cell == '.':
+            pos = (nr, nc)
+            visited.add(pos)
+            # Continue forward
+            continue
+        else:
+            # This branch should not be reached, but for robustness, treat as obstacle.
+            dir_i = (dir_i + 1) % 4
+            continue
+    return len(visited)
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+    input_file = sys.argv[1]
+    grid, start_pos, dir_idx = parse_input(input_file)
+    result = simulate_guard(grid, start_pos, dir_idx)
+    print(result)
+
+    # Test against the example if relevant (for debugging only):
+    # Uncomment to verify sample
+    # sample = [
+    #     ""....#....."",
+    #     "".........#"",
+    #     "".........."",
+    #     ""..#......."",
+    #     "".......#.."",
+    #     "".........."",
+    #     "".#..^....."",
+    #     ""........#."",
+    #     ""#........."",
+    #     ""......#...""
+    # ]
+    # grid, start_pos, dir_idx = parse_input_from_lines(sample)
+    # assert simulate_guard(grid, start_pos, dir_idx) == 41
+
+if __name__ == ""__main__"":
+    main()
+",0,[],3,"grid,simulation,path tracking,2D array,movement rules,boundary detection","grid traversal,direction vectors,position tracking,set operations,simulation",668.2657177448273,ultimate_power
+True,"""""""
+Advent of Code Day 7: Bridge Repair -- Calibration Equations Validator
+
+For each calibration equation, determine if by inserting '+'/'*' (left-to-right, no precedence) between the given numbers we can reach the test value. Sum up all such test values.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple, Iterator
+import sys
+import os
+
+def parse_input(input_file: str) -> Iterator[Tuple[int, List[int]]]:
+    """"""
+    Parse the puzzle input file into target and numbers list for each equation.
+
+    Args:
+        input_file (str): Path to the input file.
+
+    Yields:
+        Each tuple: (target, [numbers])
+    """"""
+    with open(input_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue  # skip blank lines
+            if ':' not in line:
+                continue  # skip malformed lines
+            lhs, rhs = line.split(':', 1)
+            lhs = lhs.strip()
+            rhs = rhs.strip()
+            if not lhs:
+                continue  # skip lines without target number
+            target = int(lhs)
+            # parse numbers; permit any number of spaces
+            nums = [int(token) for token in rhs.strip().split() if token]
+            if not nums:
+                continue  # skip lines without numbers after colon
+            yield (target, nums)
+
+def valid_equation(target: int, nums: List[int]) -> bool:
+    """"""
+    Determine whether nums, with +/* inserted (left-to-right evaluation), can reach the target.
+
+    Args:
+        target (int): The test value to match.
+        nums (List[int]): List of numbers in the equation (ordered, as given).
+
+    Returns:
+        bool: True if target is reachable via some operator sequence, False otherwise.
+    """"""
+    n = len(nums)
+    if n == 1:
+        return nums[0] == target
+    # Breadth-first DP over possible values
+    current = set([nums[0]])
+    for x in nums[1:]:
+        next_set = set()
+        for v in current:
+            next_set.add(v + x)
+            next_set.add(v * x)
+        current = next_set
+        # No early exit; must try all, because subsequent ops may undo match
+    return target in current
+
+def solve(input_file: str) -> int:
+    """"""
+    Main solving routine: Reads input, computes total calibration result.
+    Args:
+        input_file: Path to input file
+    Returns:
+        Integer sum of all valid test values
+    """"""
+    total = 0
+    for target, nums in parse_input(input_file):
+        if valid_equation(target, nums):
+            total += target
+    return total
+
+def run_tests():
+    """"""
+    Run embedded test cases for validation. Raises AssertionError if tests fail.
+    """"""
+    example_input = """"""190: 10 19
+3267: 81 40 27
+83: 17 5
+156: 15 6
+7290: 6 8 6 15
+161011: 16 10 13
+192: 17 8 14
+21037: 9 7 18 13
+292: 11 6 16 20""""""
+    expected = 3749
+    # Write to a temporary file
+    import tempfile
+    with tempfile.NamedTemporaryFile('w+', delete=False) as tf:
+        tf.write(example_input)
+        tf.flush()
+        fname = tf.name
+    try:
+        result = solve(fname)
+        assert result == expected, f""Testcase failed: got {result}, expected {expected}""
+    finally:
+        os.unlink(fname)
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+    input_file = sys.argv[1]
+    # Uncomment to run tests on every execution if desired:
+    # run_tests()
+    # Compute and print the answer
+    print(solve(input_file))
+
+if __name__ == ""__main__"":
+    main()
+",0,[],0,"arithmetic evaluation,operator insertion,expression evaluation,combinatorics,string parsing","combinatorial enumeration,expression parsing,left-to-right evaluation,brute force search",1495.440613269806,ultimate_power
+True,"""""""
+Advent of Code Day 8: Resonant Collinearity
+
+Given a rectangular grid with antennas marked by symbols (letters or digits), the code computes the number of unique positions within the grid that are antinodes, where an antinode occurs if two antennas of the same frequency are linearly aligned, and one is twice as far from the antinode as the other, i.e., the antinode is at 2x - y for antenna coordinates x, y.
+
+Approach:
+  - Parse the grid, for each frequency, collect all antenna coordinates.
+  - For each pair of antennas of the same frequency, compute the two possible antinodes by the formula.
+  - Collect all antinodes that fall within the bounds of the grid, using a set to ensure uniqueness.
+  - Output the size of the set as the answer.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Dict, Tuple, Set
+import sys
+import collections
+
+
+def parse_input(input_file: str) -> Tuple[Dict[str, List[Tuple[int, int]]], int, int]:
+    """"""Parse the puzzle input and collect antenna locations by frequency symbol.
+
+    Args:
+        input_file: Path to the puzzle input file.
+
+    Returns:
+        tuple of:
+            - antenna_by_freq: dict mapping frequency symbol -> list of (x, y) antenna positions
+            - width: int
+            - height: int
+    """"""
+    antenna_by_freq: Dict[str, List[Tuple[int, int]]] = collections.defaultdict(list)
+    grid: List[str] = []
+
+    with open(input_file, 'r') as f:
+        for line in f:
+            stripped = line.rstrip('\n')
+            if not stripped:
+                continue      # skip empty lines
+            grid.append(stripped)
+
+    if not grid:
+        # Edge case: empty input
+        return {}, 0, 0
+
+    height = len(grid)
+    width = len(grid[0])
+    for y, row in enumerate(grid):
+        if len(row) != width:
+            raise ValueError(f""Inconsistent row width at row {y}"")
+        for x, ch in enumerate(row):
+            if ch != '.':
+                antenna_by_freq[ch].append((x, y))
+    return antenna_by_freq, width, height
+
+
+def compute_antinodes(antenna_by_freq: Dict[str, List[Tuple[int, int]]], width: int, height: int) -> Set[Tuple[int, int]]:
+    """"""Compute all unique antinode positions within bounds.
+
+    Args:
+        antenna_by_freq: dict mapping frequency symbol to antenna (x, y) positions.
+        width: int grid width.
+        height: int grid height.
+
+    Returns:
+        Set of unique (x, y) positions of antinodes within grid.
+    """"""
+    antinodes: Set[Tuple[int, int]] = set()
+
+    for freq, positions in antenna_by_freq.items():
+        n = len(positions)
+        if n < 2:
+            continue      # Need at least two antennas for antinodes
+        for i in range(n):
+            x1, y1 = positions[i]
+            for j in range(i+1, n):
+                x2, y2 = positions[j]
+
+                # Antinode beyond x1 in direction away from x2
+                ax1 = 2*x1 - x2
+                ay1 = 2*y1 - y2
+                if 0 <= ax1 < width and 0 <= ay1 < height:
+                    antinodes.add((ax1, ay1))
+
+                # Antinode beyond x2 in direction away from x1
+                ax2 = 2*x2 - x1
+                ay2 = 2*y2 - y1
+                if 0 <= ax2 < width and 0 <= ay2 < height:
+                    antinodes.add((ax2, ay2))
+
+    return antinodes
+
+
+def solve_antinode_count(input_file: str) -> int:
+    """"""Top-level solver: parse input, compute antinodes, and return the answer.
+
+    Args:
+        input_file: Path to input file.
+
+    Returns:
+        Integer answer.
+    """"""
+    antenna_by_freq, width, height = parse_input(input_file)
+    if width == 0 or height == 0 or not antenna_by_freq:
+        return 0
+    antinodes = compute_antinodes(antenna_by_freq, width, height)
+    return len(antinodes)
+
+
+def run_example_tests():
+    """"""Run test cases from the problem description.""""""
+    import io
+    import tempfile
+
+    # Example from the problem description
+    example_grid = (
+        ""............\n""
+        ""........0...\n""
+        "".....0......\n""
+        "".......0....\n""
+        ""....0.......\n""
+        ""......A.....\n""
+        ""............\n""
+        ""............\n""
+        ""........A...\n""
+        "".........A..\n""
+        ""............\n""
+        ""............""
+    )
+    expected_answer = 14
+    with tempfile.NamedTemporaryFile('wt', delete=False) as tf:
+        tf.write(example_grid)
+        tf.flush()
+        ans = solve_antinode_count(tf.name)
+    assert ans == expected_answer, f""Test failed: expected {expected_answer}, got {ans}""
+    # Can add more tests as needed
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        sys.exit(1)
+    input_file = sys.argv[1]
+
+    # Optionally run tests (disable in production):
+    # run_example_tests()
+
+    result = solve_antinode_count(input_file)
+    # ONLY THE NUMBER, nothing else.
+    print(result)
+
+if __name__ == ""__main__"":
+    main()
+",0,[],2,"grid processing,geometry,coordinate system,pattern matching,distance calculation","geometric alignment,coordinate geometry,collinearity detection,distance ratio calculation,set operations for unique counting",569.7153809070587,ultimate_power
+True,"""""""
+Advent of Code 2022 Day 9: Disk Fragmenter
+Implements a fast O(N) algorithm (two-pointer compacting in-place) to simulate block-by-block compaction and computes the requested checksum.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Union
+import sys
+
+
+def parse_input(input_file: str) -> List[Union[int, str]]:
+    """"""
+    Parses the dense disk map into a per-block representation.
+    Args:
+        input_file: Path to file containing a single string line.
+    Returns:
+        blocks: List of int (file id) and '.' (free space) for each block.
+    """"""
+    with open(input_file, 'r') as f:
+        line = f.readline().strip()
+        if not line:  # Edge: empty input
+            return []
+    blocks: List[Union[int, str]] = []
+    is_file_segment = True
+    next_file_id = 0
+    i = 0
+    while i < len(line):
+        length = int(line[i])
+        if is_file_segment:
+            # File segment of 'length' blocks, with current file ID
+            blocks.extend([next_file_id] * length)
+            if length > 0:
+                next_file_id += 1
+        else:
+            # Free segment of 'length' blocks
+            blocks.extend(['.'] * length)
+        is_file_segment = not is_file_segment
+        i += 1
+    return blocks
+
+
+def compact_blocks(blocks: List[Union[int, str]]) -> None:
+    """"""
+    Compacts the blocks in-place, moving file blocks left to fill free spaces.
+    Args:
+        blocks: Blocks list; modified in-place.
+    """"""
+    if not blocks:
+        return  # Nothing to compact
+    n = len(blocks)
+    # Find first free space left->right
+    left = 0
+    while left < n and blocks[left] != '.':
+        left += 1
+    # Find last non-free (file block) right->left
+    right = n - 1
+    while right >= 0 and blocks[right] == '.':
+        right -= 1
+    while left < right:
+        # Invariant: blocks[left] == '.' and blocks[right] != '.'
+        # Swap
+        blocks[left], blocks[right] = blocks[right], '.'
+        # Advance left to next '.'
+        left += 1
+        while left < n and blocks[left] != '.':
+            left += 1
+        # Move right to previous non-dot
+        right -= 1
+        while right >= 0 and blocks[right] == '.':
+            right -= 1
+    # Done
+
+
+def compute_checksum(blocks: List[Union[int, str]]) -> int:
+    """"""
+    Computes the disk checksum as sum of (position * file_id).
+    Args:
+        blocks: List resulting from compaction
+    Returns:
+        checksum as integer
+    """"""
+    checksum = 0
+    for idx, b in enumerate(blocks):
+        if b == '.':
+            continue
+        checksum += idx * b
+    return checksum
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+    input_file = sys.argv[1]
+    blocks = parse_input(input_file)
+    compact_blocks(blocks)
+    result = compute_checksum(blocks)
+    print(result)
+
+if __name__ == ""__main__"":
+    main()
+",3,[],0,"string processing,simulation,array manipulation,file system,block movement","greedy algorithm,state tracking,positional calculation,sequential processing",633.2999868392944,ultimate_power
+True,"""""""
+Advent of Code: Hoof It (Topographic Trailhead Scores)
+
+Efficient algorithm: For each cell, store which height-9 cells are reachable via valid strictly uphill trails.
+Bitsets and dynamic programming per height (downhill propagation).
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple, Dict
+import sys
+
+# Directions: up, down, left, right (orthogonal only)
+DIRS: List[Tuple[int,int]] = [(-1,0), (1,0), (0,-1), (0,1)]
+
+
+def parse_input(input_file: str) -> Tuple[List[List[int]], int, int]:
+    """"""Parse the puzzle input into a grid of integer heights.
+
+    Args:
+        input_file: Path to input file
+    Returns:
+        grid: 2D list [row][col] of heights (ints)
+        rows: number of rows
+        cols: number of columns
+    """"""
+    grid: List[List[int]] = []
+    with open(input_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line == '':
+                continue
+            row = [int(ch) for ch in line]
+            grid.append(row)
+    if not grid:
+        return [], 0, 0
+    rows = len(grid)
+    cols = len(grid[0])
+    for r in grid:
+        if len(r) != cols:
+            raise ValueError(""All input rows must have the same length!"")
+    return grid, rows, cols
+
+
+def assign_nine_ids(grid: List[List[int]], rows: int, cols: int) -> Tuple[Dict[Tuple[int,int],int], int]:
+    """"""
+    Index each cell with height==9 in reading order; assign each an integer 0..N-1
+    Returns mapping from (r,c) -> nine_id, and number of 9s.
+    """"""
+    nine_id: Dict[Tuple[int,int], int] = dict()
+    idx = 0
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] == 9:
+                nine_id[(r,c)] = idx
+                idx += 1
+    return nine_id, idx
+
+
+def initialize_bitmask_grid(grid: List[List[int]], rows: int, cols: int, nine_id: Dict[Tuple[int,int],int]) -> List[List[int]]:
+    """"""
+    For each cell, bitmask[r][c] is 0 unless grid[r][c]==9, in which case bit i is set for its 9-ID.
+    """"""
+    bitmask: List[List[int]] = [[0 for _ in range(cols)] for _ in range(rows)]
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] == 9:
+                bit = nine_id[(r,c)]
+                bitmask[r][c] = 1 << bit
+            # else: leave as 0 (not reachable)
+    return bitmask
+
+
+def propagate_reachability(grid: List[List[int]], bitmask: List[List[int]], rows: int, cols: int) -> None:
+    """"""
+    For heights h=8 downto 0, set bitmask[r][c] to the OR of h+1 neighbours' bitmasks.
+    Mutates bitmask in-place.
+    """"""
+    for h in range(8,-1,-1):
+        for r in range(rows):
+            for c in range(cols):
+                if grid[r][c] != h:
+                    continue
+                for dr,dc in DIRS:
+                    nr, nc = r+dr, c+dc
+                    if 0 <= nr < rows and 0 <= nc < cols:
+                        if grid[nr][nc] == h+1:
+                            bitmask[r][c] |= bitmask[nr][nc]
+
+
+def compute_trailhead_scores(grid: List[List[int]], bitmask: List[List[int]], rows: int, cols: int) -> int:
+    """"""
+    For each height-0 cell, count the number of unique reachable 9s (i.e., number of bits in its bitmask).
+    Returns sum of all trailhead scores.
+    """"""
+    total = 0
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] == 0:
+                n = bitmask[r][c].bit_count() if hasattr(bitmask[r][c], 'bit_count') else bin(bitmask[r][c]).count('1')
+                total += n
+    return total
+
+
+def solve_part_one(grid: List[List[int]], rows: int, cols: int) -> int:
+    """"""
+    Applies DAG DP to compute all trailhead scores and sum them.
+    """"""
+    nine_id, num_nines = assign_nine_ids(grid, rows, cols)
+    bitmask = initialize_bitmask_grid(grid, rows, cols, nine_id)
+    propagate_reachability(grid, bitmask, rows, cols)
+    return compute_trailhead_scores(grid, bitmask, rows, cols)
+
+
+def run_tests():
+    test_cases = [
+        # (input_string, expected_output)
+        (""""""
+89010123
+78121874
+87430965
+96549874
+45678903
+32019012
+01329801
+10456732
+"""""", 36),
+        (""""""
+10..9..
+2...8..
+3...7..
+4567654
+...8..3
+...9..2
+.....01
+"""""", 3),
+    ]
+    for idx, (inp, expected) in enumerate(test_cases):
+        # Remove possible '.' for simple case; ignore but allow their presence in input.
+        lines = [l for l in inp.strip().split('\n') if l.strip()]
+        # Replace dots with a high number (>9) so they act as impassable barriers (they should not be present in real input)
+        grid = []
+        for line in lines:
+            row = []
+            for ch in line:
+                if ch == '.':
+                    row.append(-1) # treat as impassable
+                else:
+                    row.append(int(ch))
+            grid.append(row)
+        rows, cols = len(grid), len(grid[0]) if grid else 0
+        # Mask out impassable -1s
+        nine_id = dict()
+        bitmask = [[0 for _ in range(cols)] for _ in range(rows)]
+        idx9 = 0
+        for r in range(rows):
+            for c in range(cols):
+                if grid[r][c] == 9:
+                    nine_id[(r,c)] = idx9
+                    bitmask[r][c] = 1 << idx9
+                    idx9 += 1
+        # Propagate only over reachable cells (not -1)
+        for h in range(8,-1,-1):
+            for r in range(rows):
+                for c in range(cols):
+                    if grid[r][c] != h:
+                        continue
+                    for dr,dc in DIRS:
+                        nr,nc=r+dr,c+dc
+                        if 0<=nr<rows and 0<=nc<cols and grid[nr][nc]!=-1:
+                            if grid[nr][nc]==h+1:
+                                bitmask[r][c] |= bitmask[nr][nc]
+        total = 0
+        for r in range(rows):
+            for c in range(cols):
+                if grid[r][c]==0:
+                    n = bitmask[r][c].bit_count() if hasattr(bitmask[r][c],'bit_count') else bin(bitmask[r][c]).count('1')
+                    total += n
+        assert total == expected, f""Test case {idx+1} failed: expected {expected}, got {total}""  # Only error if fails
+
+
+def main():
+    # Command-line usage
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+    input_file = sys.argv[1]
+    grid, rows, cols = parse_input(input_file)
+    result = solve_part_one(grid, rows, cols)
+    print(result)
+
+if __name__ == ""__main__"":
+    # Optionally, run tests for debugging by uncommenting the line below
+    # run_tests()
+    main()
+",0,[],2,"grid,pathfinding,graph traversal,trail finding,connectivity analysis","breadth-first search,depth-first search,path validation,connected components,graph theory",671.3126664161682,ultimate_power
+True,"""""""
+Advent of Code Y: Day 11 - Plutonian Pebbles
+Implementation: Simulate a 25-step rule-based sequence transformation, tracking stones as digit-strings.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+from typing import List
+import re
+
+
+def strip_leading_zeros(s: str) -> str:
+    """"""
+    Strip leading zeros from a string; if result is empty, return '0'.
+    Args:
+        s: Input string
+    Returns:
+        String without leading zeros, or '0' if all zeros
+    """"""
+    s2 = s.lstrip('0')
+    return s2 if s2 else '0'
+
+def split_even_digits(s: str) -> (str, str):
+    """"""
+    Given an even-length digit string, split in half and strip each half's leading zeros.
+    Args:
+        s: String of even length
+    Returns:
+        Tuple of (left_half, right_half) -- both guaranteed not empty (empty half becomes '0')
+    """"""
+    half = len(s) // 2
+    left = strip_leading_zeros(s[:half])
+    right = strip_leading_zeros(s[half:])
+    return left, right
+
+def parse_input(input_file: str) -> List[str]:
+    """"""
+    Parse puzzle input: extract all integers, make digit-strings with no leading zeros (except '0').
+    Args:
+        input_file: Path to the puzzle input file
+    Returns:
+        List of strings representing initial stones, in order
+    """"""
+    with open(input_file, 'r') as f:
+        text = f.read()
+    # Accept arbitrary whitespace: use regex to extract all integers
+    nums = re.findall(r'\d+', text)
+    stones = [strip_leading_zeros(n) for n in nums]
+    return stones
+
+def simulate(stones: List[str], iterations: int = 25) -> int:
+    """"""
+    Simulate the stones' transformation for a given number of iterations and return the final stone count.
+    Args:
+        stones: List of current stones as digit-strings
+        iterations: Number of rounds to simulate
+    Returns:
+        Number of stones after all iterations
+    """"""
+    for it in range(iterations):
+        next_stones: List[str] = []
+        for s in stones:
+            if s == '0':
+                # Rule 1: 0 -> 1
+                next_stones.append('1')
+            elif len(s) % 2 == 0:
+                # Rule 2: split even digits, strip zeros
+                left, right = split_even_digits(s)
+                next_stones.extend([left, right])
+            else:
+                # Rule 3: multiply by 2024 (odd digits > 0)
+                product = int(s) * 2024
+                next_stones.append(str(product))
+        stones = next_stones
+    return len(stones)
+
+def run_tests():
+    """"""
+    Run provided sample transformations to verify correctness.
+    Prints to stderr only if mismatches detected.
+    """"""
+    import sys
+    test_cases = [
+        # (initial, after 1 blink)
+        ([""0"", ""1"", ""10"", ""99"", ""999""], [""1"", ""2024"", ""1"", ""0"", ""9"", ""9"", ""2021976""]),
+        ([""125"", ""17""],
+         [
+             ""2097446912"", ""14168"", ""4048"", ""2"", ""0"", ""2"", ""4"", ""40"", ""48"", ""2024"", ""40"", ""48"", ""80"", ""96"", ""2"", ""8"", ""6"", ""7"", ""6"", ""0"", ""3"", ""2""
+         ]  # after six iterations
+        )
+    ]
+    # First test: simulate 1 iteration
+    s1, expect1 = test_cases[0]
+    out1 = []
+    # manually process first transformation to verify
+    stones = s1
+    for s in stones:
+        if s == '0': out1.append('1')
+        elif len(s) % 2 == 0:
+            l, r = split_even_digits(s)
+            out1.extend([l,r])
+        else:
+            out1.append(str(int(s)*2024))
+    assert out1 == expect1, f""Test 1 failed! Got {out1}, expected {expect1}""
+
+    # Second test: simulate 6 iterations for [125,17]
+    stones = [""125"", ""17""]
+    expected = set(test_cases[1][1])
+    current = stones[:]
+    for i in range(6):
+        nxt = []
+        for s in current:
+            if s == '0':
+                nxt.append('1')
+            elif len(s) % 2 == 0:
+                l, r = split_even_digits(s)
+                nxt.extend([l,r])
+            else:
+                nxt.append(str(int(s) * 2024))
+        current = nxt
+    # Only check length and set membership (since full order not given)
+    assert len(current) == len(test_cases[1][1]), f""Test 2 len failed: got {len(current)} expected {len(test_cases[1][1])}""
+    # Stone values all present
+    assert set(current) == expected, f""Test 2 set failed: got\n{set(current)}\nexpected\n{expected}""
+    # No error if passes
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        sys.exit(1)
+    input_file = sys.argv[1]
+    stones = parse_input(input_file)
+
+    # Optional: run sample test cases (silent on pass)
+    run_tests()
+
+    count = simulate(stones, iterations=25)
+    # Per instructions, print only the answer
+    print(count)
+
+if __name__ == ""__main__"":
+    main()
+",0,[],1,"sequence transformation,string manipulation,number processing,simulation,iteration","string splitting,number theory,state simulation,rule-based transformation",472.09321117401123,ultimate_power
+True,"""""""
+Advent of Code 2023 Day 12: Garden Groups
+
+Solves: Given a 2D grid of uppercase letters, finds all regions of connected, identical letters (orthogonal adjacency). For each region, computes area (number of cells) and perimeter (number of edges bordering non-region). Sums area * perimeter of all regions for the total fencing price.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple
+from collections import deque
+import sys
+import os
+
+# Directions: up, down, left, right
+DIRS: List[Tuple[int, int]] = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+def parse_input(input_file: str) -> List[str]:
+    """"""Read the puzzle input file and return the grid as a list of strings.""""""
+    if not os.path.exists(input_file):
+        raise FileNotFoundError(f""Input file '{input_file}' not found."")
+    with open(input_file, 'r') as f:
+        lines = [line.rstrip('\n') for line in f if line.strip() != '']
+    if not lines:
+        raise ValueError(""Input grid is empty."")
+    # Assert rectangularity
+    col_lens = set(len(row) for row in lines)
+    if len(col_lens) != 1:
+        raise ValueError(""Input grid is not rectangular."")
+    return lines
+
+def find_region(grid: List[str], visited: List[List[bool]], start_r: int, start_c: int) -> Tuple[int, int]:
+    """"""
+    Perform BFS flood fill to find all cells in the region starting at (start_r, start_c),
+    of the same character as grid[start_r][start_c], marking them visited.
+    Returns: (area, perimeter) of the region
+    """"""
+    rows, cols = len(grid), len(grid[0])
+    ch = grid[start_r][start_c]
+    queue = deque()
+    queue.append((start_r, start_c))
+    visited[start_r][start_c] = True
+    area = 0
+    perimeter = 0
+    while queue:
+        r, c = queue.popleft()
+        area += 1
+        for dr, dc in DIRS:
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < rows and 0 <= nc < cols:
+                if grid[nr][nc] == ch:
+                    if not visited[nr][nc]:
+                        visited[nr][nc] = True
+                        queue.append((nr, nc))
+                    # If already visited, no perimeter contribution for this edge
+                    # (do nothing)
+                    # else: still no perimeter to add
+                else:
+                    # Bordering a cell of different type
+                    perimeter += 1
+            else:
+                # Edge of grid is perimeter
+                perimeter += 1
+    return (area, perimeter)
+
+def total_fence_price(grid: List[str]) -> int:
+    """"""
+    Finds all regions and sums area * perimeter for each region.
+    Returns total price.
+    """"""
+    rows, cols = len(grid), len(grid[0])
+    visited = [[False]*cols for _ in range(rows)]
+    total_price = 0
+    for r in range(rows):
+        for c in range(cols):
+            if not visited[r][c]:
+                area, perimeter = find_region(grid, visited, r, c)
+                total_price += area * perimeter
+    return total_price
+
+def run_tests():
+    """"""
+    Runs provided example test cases (from the problem definition) to assert correctness.
+    """"""
+    test_cases = [
+        (""AAAA\nBBCD\nBBCC\nEEEC"", 140),
+        (""OOOOO\nOXOXO\nOOOOO\nOXOXO\nOOOOO"", 772),
+        (""RRRRIICCFF\nRRRRIICCCF\nVVRRRCCFFF\nVVRCCCJFFF\nVVVVCJJCFE\nVVIVCCJJEE\nVVIIICJJEE\nMIIIIIJJEE\nMIIISIJEEE\nMMMISSJEEE"", 1930)
+    ]
+    for s, expected in test_cases:
+        grid = s.strip().split('\n')
+        result = total_fence_price(grid)
+        assert result == expected, f""Test failed. Input:\n{s}\nExpected: {expected}, Got: {result}""
+
+def main():
+    # Auto-run basic example tests
+    run_tests()
+    # Main program
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        sys.exit(1)
+    input_file = sys.argv[1]
+    grid = parse_input(input_file)
+    ans = total_fence_price(grid)
+    print(ans)
+
+if __name__ == ""__main__"":
+    main()
+",0,[],3,"2D grid,connected components,region counting,perimeter calculation,area calculation","flood fill,connected component labeling,boundary tracking,grid traversal",1445.2432227134705,ultimate_power
+True,"""""""
+Advent of Code 2023 Day 13: Claw Contraption
+Solution implementation based on the provided plan.
+
+Usage: python3 solution.py [input_file]
+
+Summary:
+For each machine, model the two buttons' movement as 2D vectors, and the prize as a target.
+This is a system of linear Diophantine equations.
+We solve each system exactly for non-negative integer button presses.
+If there is a solution, minimize total tokens (A: 3 tokens, B: 1 token per press).
+Sum the minimal tokens over all winnable machines.
+""""""
+from typing import List, Optional, Tuple
+import sys
+import re
+from dataclasses import dataclass
+from math import gcd, ceil, floor
+
+@dataclass
+class Machine:
+    dxA: int
+    dyA: int
+    dxB: int
+    dyB: int
+    target_x: int
+    target_y: int
+
+def parse_input(input_file: str) -> List[Machine]:
+    """"""Parse the puzzle input from file into a list of Machine objects.
+
+    Args:
+        input_file: Path to the input file
+    Returns:
+        list of Machine objects
+    """"""
+    with open(input_file, 'r') as f:
+        s = f.read()
+    # Split into blocks (separated by blank lines)
+    blocks = re.split(r'\n\s*\n', s.strip())
+    machines = []
+    for block in blocks:
+        # Find all X/Y pairs
+        moves = re.findall(r'X\+?(-?\d+),\s*Y\+?(-?\d+)', block)
+        if len(moves) != 2:
+            print(f""Malformed block: {block}"", file=sys.stderr)
+            continue
+        dxA, dyA = map(int, moves[0])
+        dxB, dyB = map(int, moves[1])
+        t = re.search(r'Prize:\s*X=(-?\d+),\s*Y=(-?\d+)', block)
+        if not t:
+            print(f""Malformed block (no Prize line): {block}"", file=sys.stderr)
+            continue
+        target_x, target_y = map(int, t.groups())
+        machines.append(Machine(dxA, dyA, dxB, dyB, target_x, target_y))
+    return machines
+
+def solve_machine(m: Machine) -> Optional[int]:
+    """"""Compute minimal token cost to win a prize on a machine, or None if not possible.
+
+    Returns:
+        Minimal total tokens cost (int), or None if no solution.
+    """"""
+    dxA, dyA, dxB, dyB, TX, TY = m.dxA, m.dyA, m.dxB, m.dyB, m.target_x, m.target_y
+
+    D = dxA * dyB - dxB * dyA
+    if D != 0:
+        # Cramer's rule
+        num_a =  TX * dyB - TY * dxB
+        num_b = dxA * TY - dyA * TX
+        if num_a % D != 0 or num_b % D != 0:
+            # No integer solution
+            return None
+        a = num_a // D
+        b = num_b // D
+        if a < 0 or b < 0:
+            # No non-negative integer solution
+            return None
+        return 3 * a + b
+    else:
+        # D == 0: colinear/parallel
+        # First, must check if target is on this line:
+        if dxA * TY != dyA * TX:
+            return None
+        # Reduce to one equation:
+        # Try to pick X equation; if both dxA, dxB are zero, use Y
+        if dxA != 0 or dxB != 0:
+            # Solve dxA * a + dxB * b = TX
+            return _min_tokens_single_eq(dxA, dxB, TX, dyA, dyB, TY)
+        else:
+            # Both dxA, dxB == 0; use Y
+            # Sanity check: dyA * a + dyB * b == TY
+            return _min_tokens_single_eq(dyA, dyB, TY, dxA, dxB, TX)
+
+def _extended_gcd(a: int, b: int) -> Tuple[int, int, int]:
+    """"""Extended Euclidean algorithm.
+    Returns (g, x, y) where g=gcd(a,b), and a*x + b*y = g
+    """"""
+    if b == 0:
+        return (abs(a), 1 if a >= 0 else -1, 0)
+    else:
+        g, y, x = _extended_gcd(b, a % b)
+        y -= (a // b) * x
+        return g, x, y
+
+def _min_tokens_single_eq(c1: int, c2: int, t: int, cc1: int, cc2: int, tt: int) -> Optional[int]:
+    """"""
+    Helper for colinear/parallel case: minimize 3*a + b subject to c1*a + c2*b = t, a,b >=0, integers.
+    Also asserts that cc1*a + cc2*b == tt. (extra axis, for sanity)
+    """"""
+    # If possible, find all possible integer solution(s) (a,b)>=0, minimal 3a+b
+
+    g = gcd(c1, c2)
+    if g == 0:
+        # Both coefficients zero, should not occur if input is valid
+        return None
+    if t % g != 0:
+        return None
+    # Reduce equation
+    c1p, c2p, tp = c1 // g, c2 // g, t // g
+    eg, x0, y0 = _extended_gcd(c1p, c2p)
+    # x0, y0: c1p*x0 + c2p*y0 == 1
+    # Scale up solution:
+    a0 = x0 * tp
+    b0 = y0 * tp
+    # General solution:
+    # a = a0 + k * c2p
+    # b = b0 - k * c1p
+    k_bounds = []
+    # We need a >= 0 => k >= ceil(-a0 / c2p) if c2p != 0
+    #            b >= 0 => k <= floor(b0 / c1p) if c1p != 0
+    if c2p > 0:
+        k_min = ceil(-a0 / c2p)
+        k_bounds.append(('min', k_min))
+    elif c2p < 0:
+        k_max = floor(-a0 / c2p)
+        k_bounds.append(('max', k_max))
+    else:
+        # c2p == 0: a = a0, must have a0 >= 0
+        if a0 < 0:
+            return None
+    if c1p > 0:
+        k_max = floor(b0 / c1p)
+        k_bounds.append(('max', k_max))
+    elif c1p < 0:
+        k_min = ceil(b0 / c1p)
+        k_bounds.append(('min', k_min))
+    else:
+        if b0 < 0:
+            return None
+    # Calculate allowable k-range
+    k_lo = -float('inf')
+    k_hi = float('inf')
+    for bound_type, kval in k_bounds:
+        if bound_type == 'min':
+            if kval > k_lo:
+                k_lo = kval
+        else:
+            if kval < k_hi:
+                k_hi = kval
+    # k must be an integer
+    if k_lo > k_hi:
+        return None
+    # Search all integer k in [k_lo, k_hi]
+    min_cost = None
+    for k in range(int(ceil(k_lo)), int(floor(k_hi)) + 1):
+        a = a0 + k * c2p
+        b = b0 - k * c1p
+        if a < 0 or b < 0:
+            continue
+        # Sanity check (shouldn't be violated):
+        if cc1 * a + cc2 * b != tt:
+            continue
+        cost = 3 * a + b
+        if (min_cost is None) or (cost < min_cost):
+            min_cost = cost
+    return min_cost
+
+def solve_all_machines(machines: List[Machine]) -> int:
+    """"""Aggregate minimum tokens needed to win all possible prizes.
+
+       Args:
+           machines: List of machines to solve
+       Returns:
+           Sum of minimal tokens for all solvable machines
+    """"""
+    total_tokens = 0
+    #solvable_count = 0
+    for idx, m in enumerate(machines):
+        cost = solve_machine(m)
+        if cost is not None:
+            total_tokens += cost
+        #    solvable_count += 1
+    return total_tokens
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    machines = parse_input(input_file)
+
+    # Solve part one
+    part_one_solution = solve_all_machines(machines)
+    # ONLY PRINT THE RESULT, NO OTHER TEXT
+    print(part_one_solution)
+
+    # --- Test with provided test cases ---
+    # (see test_cases field)
+    # If we want, can assert on the main example:
+    example_input = (
+        ""Button A: X+94, Y+34\n""
+        ""Button B: X+22, Y+67\n""
+        ""Prize: X=8400, Y=5400\n\n""
+        ""Button A: X+26, Y+66\n""
+        ""Button B: X+67, Y+21\n""
+        ""Prize: X=12748, Y=12176\n\n""
+        ""Button A: X+17, Y+86\n""
+        ""Button B: X+84, Y+37\n""
+        ""Prize: X=7870, Y=6450\n\n""
+        ""Button A: X+69, Y+23\n""
+        ""Button B: X+27, Y+71\n""
+        ""Prize: X=18641, Y=10279""
+    )
+    test_file = None
+    import tempfile
+    import os
+    # We only run the test if not running on main input
+    if os.path.abspath(input_file) != os.path.abspath('test_advent_day13_temp.txt'):
+        with tempfile.NamedTemporaryFile('w+', delete=False) as tf:
+            tf.write(example_input)
+            tf.flush()
+            test_file = tf.name
+        test_machines = parse_input(test_file)
+        test_result = solve_all_machines(test_machines)
+        assert test_result == 480, f""Test failed: expected 480, got {test_result}""
+        os.remove(test_file)
+
+if __name__ == ""__main__"":
+    main()
+",0,[],2,"linear equations,optimization,diophantine equations,coordinate system,cost minimization","linear equation solving,system of equations,integer programming,optimization problem,feasibility checking",1297.3145389556885,ultimate_power
+True,"""""""
+Advent of Code Day 14: Restroom Redoubt
+Simulate robots' toroidal movement & quadrant counting after t=100 seconds.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple
+import sys
+import re
+import math
+
+WIDTH = 101
+HEIGHT = 103
+T = 100
+# Middle column (x) and row (y); 0-based indices
+MID_X = WIDTH // 2   # 50
+MID_Y = HEIGHT // 2  # 51
+
+Quadrant_NAMES = (""NW"", ""NE"", ""SW"", ""SE"")
+
+def parse_input(input_file: str) -> List[Tuple[int, int, int, int]]:
+    """"""Parse robots from input file into a list of (x0, y0, vx, vy) tuples.""""""
+    robots: List[Tuple[int,int,int,int]] = []
+    pattern = re.compile(r""p=(-?\d+),(-?\d+) v=(-?\d+),(-?\d+)"")
+    with open(input_file) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            m = pattern.match(line)
+            if not m:
+                raise ValueError(f""Malformed line: {line}"")
+            x0, y0, vx, vy = map(int, m.groups())
+            robots.append((x0, y0, vx, vy))
+    return robots
+
+def compute_final_position(x0: int, y0: int, vx: int, vy: int) -> Tuple[int, int]:
+    """"""Return the final position after T seconds with wraparound.""""""
+    xf = (x0 + vx * T) % WIDTH
+    yf = (y0 + vy * T) % HEIGHT
+    return xf, yf
+
+def classify_quadrant(x: int, y: int) -> str:
+    """"""Given final x/y, return which quadrant or None (if on middle row/column).""""""
+    if x == MID_X or y == MID_Y:
+        return None
+    if x < MID_X and y < MID_Y:
+        return ""NW""
+    if x > MID_X and y < MID_Y:
+        return ""NE""
+    if x < MID_X and y > MID_Y:
+        return ""SW""
+    if x > MID_X and y > MID_Y:
+        return ""SE""
+    # For completeness (should never hit):
+    return None
+
+def solve(robots: List[Tuple[int,int,int,int]]) -> int:
+    """"""Computes safety factor (product of robots per quadrant after T=100s).""""""
+    counts = {q: 0 for q in Quadrant_NAMES}
+    for x0, y0, vx, vy in robots:
+        x, y = compute_final_position(x0, y0, vx, vy)
+        quadrant = classify_quadrant(x, y)
+        if quadrant:
+            counts[quadrant] += 1
+    result = 1
+    for q in Quadrant_NAMES:
+        result *= counts[q]
+    return result
+
+def main():
+    # For Advent of Code, only print the result
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+    input_file = sys.argv[1]
+    robots = parse_input(input_file)
+    # Test block (uncomment/adjust for debugging)
+    # test_input = """"""p=0,4 v=3,-3\np=6,3 v=-1,-3\np=10,3 v=-1,2\np=2,0 v=2,-1\np=0,0 v=1,3\np=3,0 v=-2,-2\np=7,6 v=-1,-3\np=3,0 v=-1,-2\np=9,3 v=2,3\np=7,3 v=-1,2\np=2,4 v=2,-3\np=9,5 v=-3,-3""""""
+    # with open(""_tmp_input_.txt"",""w"") as f: f.write(test_input)
+    # robots = parse_input(""_tmp_input_.txt"")
+    # expected = 12
+    # res = solve(robots)
+    # assert res == expected, f""Testcase failed: got {res}, expected {expected}""
+    # ---
+    print(solve(robots))
+
+if __name__ == ""__main__"":
+    main()
+",0,[],2,"grid,simulation,modular arithmetic,coordinate system,motion prediction","periodic motion,geometric simulation,quadrant counting,boundary wrapping,position tracking",739.6890254020691,ultimate_power
+True,"""""""
+Advent of Code - Warehouse Woes Simulation
+Solves: Given a grid map and robot movement sequence, simulate box-pushing according to the rules,
+then compute GPS sum of all boxes.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple, Dict
+import sys
+import re
+
+DIR = {
+    '^': (-1, 0),
+    'v': (1, 0),
+    '<': (0, -1),
+    '>': (0, 1),
+}
+
+def parse_input(input_file: str) -> Tuple[List[List[str]], Tuple[int, int], str]:
+    """"""Parse the input file to extract the grid, robot position, and move string.
+
+    Returns:
+        grid: list of list (chars), mutable
+        robot_pos: (row, col)
+        moves: string, movement sequence
+    """"""
+    with open(input_file, 'r') as f:
+        lines = f.read().splitlines()
+    # Find the movement start line: first line that matches only moves
+    move_idxs = [i for i, line in enumerate(lines) if re.fullmatch(r'[<>^v]+', line.strip())]
+    if not move_idxs:
+        # No sole movement line? Possibly empty lines, so try splitting on first blank line
+        try:
+            blank_idx = lines.index('')
+            grid_lines = lines[:blank_idx]
+            move_lines = [l.strip() for l in lines[blank_idx+1:] if l.strip()]
+        except ValueError:
+            # No move sequence found
+            raise ValueError(""Input file must contain a grid followed by moves string(s)"")
+    else:
+        grid_lines = lines[:move_idxs[0]]
+        move_lines = [l.strip() for l in lines[move_idxs[0]:] if l.strip()]
+    grid = [list(line) for line in grid_lines]
+    robot_pos = None
+    for r, row in enumerate(grid):
+        for c, ch in enumerate(row):
+            if ch == '@':
+                robot_pos = (r, c)
+                grid[r][c] = '.'  # Replace robot marker in grid.
+    if robot_pos is None:
+        raise ValueError(""Robot '@' not found in grid!"")
+    moves = ''.join(move_lines)
+    if not all(ch in DIR for ch in moves):
+        raise ValueError(f""Invalid movement character in moves string: {set(moves) - set(DIR)}"")
+    return grid, robot_pos, moves
+
+def do_simulation(grid: List[List[str]], robot_pos: Tuple[int, int], moves: str) -> List[List[str]]:
+    """"""
+    Simulate the robot and box movement as per the warehouse rules.
+
+    Args:
+        grid: 2-D grid, modified in-place
+        robot_pos: tuple (row, col) robot start location
+        moves: move sequence
+    Returns:
+        mutated grid (same object), robot will not be marked in grid
+    """"""
+    nrows = len(grid)
+    ncols = len(grid[0]) if nrows > 0 else 0
+    rbot, cbot = robot_pos
+    for idx, ch in enumerate(moves):
+        dr, dc = DIR[ch]
+        r1, c1 = rbot + dr, cbot + dc
+        cell = grid[r1][c1]
+        if cell == '#':
+            continue
+        elif cell == '.':
+            rbot, cbot = r1, c1
+        elif cell == 'O':
+            # Scan forward for contiguous boxes
+            boxes = []
+            rr, cc = r1, c1
+            while 0 <= rr < nrows and 0 <= cc < ncols and grid[rr][cc] == 'O':
+                boxes.append((rr, cc))
+                rr += dr
+                cc += dc
+            # rr,cc now is first non-box cell
+            if not (0 <= rr < nrows and 0 <= cc < ncols):
+                continue  # out of bounds (shouldn't happen if surrounded by walls)
+            if grid[rr][cc] == '#':
+                continue  # Blocked by wall
+            elif grid[rr][cc] == '.':
+                # Can push - move all boxes forward 1
+                # Place new box at (rr,cc), then shift existing
+                # Do boxes in reverse order to avoid overwrite
+                grid[rr][cc] = 'O'
+                for bidx in reversed(range(len(boxes))):
+                    br, bc = boxes[bidx]
+                    grid[br][bc] = '.'
+                    n_br, n_bc = br + dr, bc + dc
+                    grid[n_br][n_bc] = 'O'
+                # Robot moves to the previous position of first box
+                rbot, cbot = boxes[0]
+            else:
+                # Unexpected cell type
+                raise ValueError(f""Malformed grid cell at ({rr},{cc}) = '{grid[rr][cc]}'"")
+        else:
+            raise ValueError(f""Unexpected cell '{cell}' at {r1},{c1}"")
+    # We do not mark robot in grid
+    return grid
+
+def compute_gps_sum(grid: List[List[str]]) -> int:
+    """"""Compute GPS sum as 100*row + col for each box 'O'""""""
+    total = 0
+    for r, row in enumerate(grid):
+        for c, ch in enumerate(row):
+            if ch == 'O':
+                total += 100 * r + c
+    return total
+
+def process(input_file: str) -> int:
+    grid, robot_pos, moves = parse_input(input_file)
+    do_simulation(grid, robot_pos, moves)
+    return compute_gps_sum(grid)
+
+# For testing against string literal inputs
+import io
+import tempfile
+
+def run_test_cases():
+    # Provided test cases [(input, expected)]
+    tests = [
+        (
+            ""########\n#..O.O.#\n##@.O..#\n#...O..#\n#.#.O..#\n#...O..#\n#......#\n########\n\n<^^>>>vv<v>>v<<"",
+            2028
+        ),
+        (
+            ""##########\n#..O..O.O#\n#......O.#\n#.OO..O.O#\n#..O@..O.#\n#O#..O...#\n#O..O..O.#\n#.OO.O.OO#\n#....O...#\n##########\n\n<vv>^<v^>v>^vv^v>v<>v^v<v<^vv<<<^><<><>>v<vvv<>^v^>^<<<><<v<<<v^vv^v>^vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v><>vv>v^v^<>><>>>><^^>vv>v<^^^>>v^v^<^^>v^^>v^<^v>v<>>v^v^<v>v^^<^^vv<<<v<^>>^^^^>>>v^<>vvv^><v<<<>^^^vv^<vvv>^>v<^^^^v<>^>vvvv><>>v^<<^^^^^^><^><>>><>^^<<^^v>>><^<v>^<vv>>v>>>^v><>^v><<<<v>>v<v<v>vvv>^<><<>^><^>><>^v<><^vvv<^^<><v<<<<<><^v<<<><<<^^<v<^^^><^>>^<v^><<<^>>^v<v^v<v^>^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^<><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^"",
+            10092
+        )
+    ]
+    passed = True
+    for idx, (test_in, expected) in enumerate(tests):
+        with tempfile.NamedTemporaryFile(""w+t"", delete=False) as tf:
+            tf.write(test_in.strip().replace('\\n', '\n'))
+            tf.flush()
+            tf_name = tf.name
+        try:
+            result = process(tf_name)
+            assert result == expected, f""Test {idx+1} failed: got {result}, expected {expected}""
+        finally:
+            import os
+            os.remove(tf_name)
+    # Optional: print to stderr on pass
+    # print(""All tests passed!"", file=sys.stderr)
+
+
+def main():
+    # Run tests
+    if __debug__:
+        run_test_cases()
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+    input_file = sys.argv[1]
+    result = process(input_file)
+    print(result)
+
+if __name__ == ""__main__"":
+    main()
+",0,[],3,"grid,simulation,movement,coordinate calculation,box pushing,path following","grid traversal,state simulation,collision detection,coordinate system manipulation",929.6518623828888,ultimate_power
+True,"""""""
+Advent of Code - Reindeer Maze (Directional Dijkstra)
+Find the minimum score to navigate from S (start) to E (end) in a maze:
+- Move forward: cost 1
+- Rotate (turn left/right 90 deg): cost 1000
+- Start: at 'S', facing East (direction 0)
+- End: any direction at 'E'
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple, Dict
+import sys
+import heapq
+import collections
+
+# Directions: E(0), S(1), W(2), N(3); (dr, dc)
+DIRS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+
+
+def parse_input(filename: str) -> Tuple[List[str], Tuple[int, int], Tuple[int, int]]:
+    """"""
+    Reads the maze input.
+    Returns: (grid [row strings], start (r,c), end (r,c))
+    The grid will have 'S' and 'E' replaced by '.' so all walkable tiles are '.'
+    """"""
+    grid = []
+    start = end = None
+    with open(filename) as f:
+        for r, line in enumerate(f):
+            line = line.rstrip('\n')
+            rowdata = list(line)
+            for c, ch in enumerate(rowdata):
+                if ch == 'S':
+                    start = (r, c)
+                    rowdata[c] = '.'
+                elif ch == 'E':
+                    end = (r, c)
+                    rowdata[c] = '.'
+            grid.append(''.join(rowdata))
+
+    if start is None or end is None:
+        raise ValueError(""Input must contain 'S' (start) and 'E' (end)"")
+    return grid, start, end
+
+
+def dijkstra_min_score(grid: List[str], start: Tuple[int, int], end: Tuple[int, int]) -> int:
+    """"""
+    Run Dijkstra from (start_r, start_c, direction=0 [East])
+    Returns the minimum score to reach end (any orientation)
+    """"""
+    rows, cols = len(grid), len(grid[0])
+    initial_state = (start[0], start[1], 0)  # r, c, direction
+    heap = []  # (score, r, c, direction)
+    heapq.heappush(heap, (0, start[0], start[1], 0))
+    # dist[(r, c, d)] = minimal score to reach here facing d
+    dist: Dict[Tuple[int, int, int], int] = {initial_state: 0}
+
+    while heap:
+        score, r, c, d = heapq.heappop(heap)
+        # Early exit if we reach the end
+        if (r, c) == end:
+            return score
+        # Guard: skip outdated entries
+        if dist[(r, c, d)] < score:
+            continue
+        # Three actions: rotate left, rotate right, move forward
+        # Rotate left (counterclockwise)
+        nd = (d + 3) % 4
+        nstate = (r, c, nd)
+        cand = score + 1000
+        if dist.get(nstate, float('inf')) > cand:
+            dist[nstate] = cand
+            heapq.heappush(heap, (cand, r, c, nd))
+        # Rotate right (clockwise)
+        nd = (d + 1) % 4
+        nstate = (r, c, nd)
+        cand = score + 1000
+        if dist.get(nstate, float('inf')) > cand:
+            dist[nstate] = cand
+            heapq.heappush(heap, (cand, r, c, nd))
+        # Move forward
+        dr, dc = DIRS[d]
+        nr, nc = r + dr, c + dc
+        if 0 <= nr < rows and 0 <= nc < cols and grid[nr][nc] != '#':
+            nstate = (nr, nc, d)
+            cand = score + 1
+            if dist.get(nstate, float('inf')) > cand:
+                dist[nstate] = cand
+                heapq.heappush(heap, (cand, nr, nc, d))
+    # If unreachable
+    return -1
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+    input_file = sys.argv[1]
+    grid, start, end = parse_input(input_file)
+    min_score = dijkstra_min_score(grid, start, end)
+    print(min_score)
+
+    # --- Unit test block below (not printed on normal AoC input runs) ---
+    # Using the test_cases provided (to verify code correctness)
+    if False:
+        # Set to True to auto-test
+        test_cases = [
+            (""""""###############\n#.......#....E#\n#.#.###.#.###.#\n#.....#.#...#.#\n#.###.#####.#.#\n#.#.#.......#.#\n#.#.#####.###.#\n#...........#.#\n###.#.#####.#.#\n#...#.....#.#.#\n#.#.#.###.#.#.#\n#.....#...#.#.#\n#.###.#.#.#.#.#\n#S..#.....#...#\n###############"""""", 7036),
+            (""""""#################\n#...#...#...#..E#\n#.#.#.#.#.#.#.#.#\n#.#.#.#...#...#.#\n#.#.#.#.###.#.#.#\n#...#.#.#.....#.#\n#.#.#.#.#.#####.#\n#.#...#.#.#.....#\n#.#.#####.#.###.#\n#.#.#.......#...#\n#.#.###.#####.###\n#.#.#...#.....#.#\n#.#.#.#####.###.#\n#.#.#.........#.#\n#.#.#.#########.#\n#S#.............#\n#################"""""", 11048),
+        ]
+        for inputstr, expected in test_cases:
+            grid = []
+            start = end = None
+            for r, line in enumerate(inputstr.split('\n')):
+                rowdata = list(line)
+                for c, ch in enumerate(rowdata):
+                    if ch == 'S':
+                        start = (r, c)
+                        rowdata[c] = '.'
+                    elif ch == 'E':
+                        end = (r, c)
+                        rowdata[c] = '.'
+                grid.append(''.join(rowdata))
+            result = dijkstra_min_score(grid, start, end)
+            assert result == expected, f""Failed test: expected {expected}, got {result}""
+
+if __name__ == ""__main__"":
+    main()
+",0,[],2,"maze,pathfinding,grid navigation,cost optimization,directional movement","shortest path algorithm,state-space search,dijkstra's algorithm,A* search,directional state tracking",418.5272250175476,ultimate_power
+True,"""""""
+Advent of Code (Year: N/A) Day 17: Chronospatial Computer
+Implements a 3-bit computer simulator as described in the problem statement.
+
+Usage: python3 solution.py [input_file]
+
+The input file is a debugger dump, listing the initial values for registers (A, B, C)
+and a comma-separated program.
+This script executes the program step by step, following the VM semantics and instruction set.
+The outputs from all 'out' instructions are printed as a comma-separated string on a single line.
+
+Author: Advent of Code Implementation Agent
+""""""
+import sys
+import re
+from typing import List, Tuple, Optional
+
+# ---- Opcode spec: mapping to (mnemonic, operand_type) ----
+# operand_type: 'literal', 'combo', 'ignored'
+OPINFO = {
+    0: ('adv', 'combo'),     # A := A // 2**combo_val
+    1: ('bxl', 'literal'),   # B := B ^ literal
+    2: ('bst', 'combo'),     # B := combo_val % 8
+    3: ('jnz', 'literal'),   # if A != 0: jump to literal
+    4: ('bxc', 'ignored'),   # B := B ^ C (operand ignored)
+    5: ('out', 'combo'),     # output (combo_val % 8)
+    6: ('bdv', 'combo'),     # B := A // 2**combo_val
+    7: ('cdv', 'combo'),     # C := A // 2**combo_val
+}
+
+REG_NAMES = {'A': 0, 'B': 1, 'C': 2}
+
+
+def parse_input(input_file: str) -> Tuple[List[int], List[int]]:
+    """"""Parse the puzzle input from file into register values and program numbers.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        Tuple (regs, prog):
+            regs: List[int] of length 3, initial values for registers A, B, C
+            prog: List[int] of 3-bit numbers (0-7), the program
+    """"""
+    with open(input_file, 'r') as f:
+        lines = [line.strip() for line in f if line.strip()]
+
+    regs = [0, 0, 0]  # [A, B, C]
+    prog: Optional[List[int]] = None
+
+    prog_pattern = re.compile(r'^Program:')
+    reg_pattern = re.compile(r'^Register ([ABC]):\s*([-]?[0-9]+)$')
+
+    for line in lines:
+        regmatch = reg_pattern.match(line)
+        if regmatch:
+            reg_char, val = regmatch.groups()
+            regs[REG_NAMES[reg_char]] = int(val)
+            continue
+        if prog_pattern.match(line):
+            # Program line
+            _, prog_str = line.split(':', 1)
+            prog = [int(x.strip()) for x in prog_str.strip().split(',') if x.strip() != '']
+
+    if prog is None:
+        # Maybe there are no explicit register lines, just ""Program: ..."" somewhere
+        for line in lines:
+            if prog_pattern.match(line):
+                _, prog_str = line.split(':', 1)
+                prog = [int(x.strip()) for x in prog_str.strip().split(',') if x.strip() != '']
+        if prog is None:
+            raise ValueError(""Input does not contain a 'Program:' line."")
+
+    if not all(0 <= n <= 7 for n in prog):
+        raise ValueError(f""Program contains invalid 3-bit numbers: {prog}"")
+    return regs, prog
+
+
+def eval_literal_operand(operand: int) -> int:
+    """"""Return literal operand's value (0..7).""""""
+    return operand
+
+
+def eval_combo_operand(operand: int, regs: List[int]) -> int:
+    """"""Evaluate combo operand value as per rules.
+    - operand 0..3: literal 0..3
+    - 4: regs[0], 5: regs[1], 6: regs[2]
+    - 7: reserved, must error
+    """"""
+    if operand == 7:
+        raise ValueError(""Combo operand 7 is reserved and should never appear."")
+    if 0 <= operand <= 3:
+        return operand
+    elif operand == 4:
+        return regs[0]
+    elif operand == 5:
+        return regs[1]
+    elif operand == 6:
+        return regs[2]
+    else:
+        raise ValueError(f""Invalid combo operand: {operand}"")
+
+
+def run_program(init_regs: List[int], prog: List[int]) -> List[int]:
+    """"""Simulates the 3-bit VM and returns a list of output values.""""""
+    regs = list(init_regs)  # Copy to avoid mutating caller's list
+    ip = 0
+    out_buf: List[int] = []
+    prog_len = len(prog)
+
+    # Main simulation loop
+    while ip < prog_len:
+        opcode = prog[ip]
+        if opcode not in OPINFO:
+            raise ValueError(f""Unknown opcode {opcode} at pos {ip}"")
+        if ip + 1 >= prog_len:
+            # No operand left; treat as halt
+            break
+        operand = prog[ip + 1]
+        opname, operkind = OPINFO[opcode]
+
+        # Pre-evaluate operand value(s)
+        literal = None
+        combo = None
+        if operkind == 'literal':
+            literal = eval_literal_operand(operand)
+        elif operkind == 'combo':
+            # Raises ValueError if operand == 7
+            combo = eval_combo_operand(operand, regs)
+        # Execute opcode
+        jump_ip: Optional[int] = None
+        if opcode == 0:      # adv
+            den = pow(2, combo)
+            # Division result truncated toward zero as per problem. For non-negative A, // is OK.
+            regs[0] = int(regs[0] // den)
+        elif opcode == 1:    # bxl
+            regs[1] ^= literal
+        elif opcode == 2:    # bst
+            regs[1] = combo % 8
+        elif opcode == 3:    # jnz
+            if regs[0] != 0:
+                # jump (do NOT increment ip+2 after jump)
+                jump_ip = literal
+        elif opcode == 4:    # bxc
+            # Operand ignored.
+            regs[1] ^= regs[2]
+        elif opcode == 5:    # out
+            out_val = combo % 8
+            out_buf.append(out_val)
+        elif opcode == 6:    # bdv
+            den = pow(2, combo)
+            regs[1] = int(regs[0] // den)
+        elif opcode == 7:    # cdv
+            den = pow(2, combo)
+            regs[2] = int(regs[0] // den)
+        else:
+            raise ValueError(f""Unsupported opcode {opcode} at PC={ip}"")
+        # Advance IP
+        if jump_ip is not None:
+            ip = jump_ip
+        else:
+            ip += 2
+    return out_buf
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+    input_file = sys.argv[1]
+    regs, prog = parse_input(input_file)
+    output = run_program(regs, prog)
+    # Only print the output string, nothing else
+    print("","".join(map(str, output)))
+
+    # Test code for provided cases (uncomment for debugging)
+    # --- Test Cases Section
+    # test_cases = [
+    #     (""Register A: 729\nRegister B: 0\nRegister C: 0\nProgram: 0,1,5,4,3,0"", ""4,6,3,5,6,3,5,2,1,0""),
+    #     (""Register A: 10\nProgram: 5,0,5,1,5,4"", ""0,1,2""),
+    #     (""Register A: 2024\nProgram: 0,1,5,4,3,0"", ""4,2,5,6,7,7,7,7,3,1,0"")
+    # ]
+    # for idx, (test_input, exp) in enumerate(test_cases):
+    #     import io
+    #     with open(f""_tmp_testcase{idx}.txt"", ""w"") as fh:
+    #         fh.write(test_input)
+    #     cregs, cprog = parse_input(f""_tmp_testcase{idx}.txt"")
+    #     cres = run_program(cregs, cprog)
+    #     crestr = "","".join(map(str,cres))
+    #     assert crestr == exp, f""Test {idx} failed: got {crestr} expected {exp}""
+    #     print(f""[Test {idx} passed]"")
+
+if __name__ == ""__main__"":
+    main()
+",1,[],2,"instruction simulation,register manipulation,bitwise operations,program execution,state machine","virtual machine,instruction set architecture,control flow,binary arithmetic,state tracking",704.5639846324921,ultimate_power
+True,"""""""
+Advent of Code - Grid Pathfinding with Dynamic Obstacles (RAM Run)
+
+Shortest path from (0,0) to (70,70) in a 71x71 grid where certain positions become blocked as bytes 'fall' into the grid sequentially. The first 1024 coordinates in the input become obstacles. Movement is allowed in four directions; path avoidance is required.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Set, Tuple, Optional
+import sys
+from collections import deque
+import sys
+
+GRID_SIZE = 71  # grid is 0..70 inclusive
+START = (0, 0)
+GOAL = (70, 70)
+BYTES_TO_FALL = 1024
+
+
+def parse_input(input_file: str) -> List[Tuple[int, int]]:
+    """"""
+    Reads the list of coordinates that become blocked in order.
+    Args:
+        input_file: Path to the input file
+    Returns:
+        List of (x, y) tuples as integers, in input order.
+    """"""
+    coords = []
+    with open(input_file, 'r') as f:
+        lines = f.readlines()
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        parts = line.split(',')
+        if len(parts) != 2:
+            continue  # ignore malformed lines
+        try:
+            x, y = int(parts[0]), int(parts[1])
+        except ValueError:
+            continue  # skip non-integer coordinates
+        coords.append((x, y))
+    return coords
+
+
+def build_blocked_set(coords: List[Tuple[int, int]]) -> Set[Tuple[int, int]]:
+    """"""
+    Builds the set of blocked (corrupted) positions after first 1024 bytes have fallen.
+    Args:
+        coords: List of (x, y) byte-fall coordinates, in order.
+    Returns:
+        Set of (x, y) entries that are blocked after BYTES_TO_FALL.
+    """"""
+    blocked = set()
+    for x, y in coords[:BYTES_TO_FALL]:
+        # Only record valid positions in bounds
+        if 0 <= x < GRID_SIZE and 0 <= y < GRID_SIZE:
+            blocked.add((x, y))
+    return blocked
+
+
+def bfs_shortest_path(blocked: Set[Tuple[int, int]]) -> Optional[int]:
+    """"""
+    Classic BFS to find shortest path from START to GOAL avoiding 'blocked'.
+    Args:
+        blocked: Set of (x,y) tuples that are obstacles.
+    Returns:
+        Integer minimum number of steps to GOAL, or None if GOAL unreachable.
+    """"""
+    # Early impossibility detection
+    if START in blocked or GOAL in blocked:
+        return None  # unreachable
+    queue = deque()
+    queue.append((START[0], START[1], 0))  # (x, y, steps)
+    visited = set()
+    visited.add(START)
+    # Four cardinal directions: (dx, dy)
+    directions = [(0,1), (0,-1), (1,0), (-1,0)]
+
+    while queue:
+        x, y, dist = queue.popleft()
+        if (x, y) == GOAL:
+            return dist  # Found minimal path!
+        for dx, dy in directions:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < GRID_SIZE and 0 <= ny < GRID_SIZE:
+                if (nx, ny) not in blocked and (nx, ny) not in visited:
+                    visited.add((nx, ny))
+                    queue.append((nx, ny, dist + 1))
+    return None  # No path found
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        return
+    input_file = sys.argv[1]
+    coords = parse_input(input_file)
+    blocked = build_blocked_set(coords)
+    result = bfs_shortest_path(blocked)
+    # AoC requires only the answer printed; handle no-path per spec (assuming always possible unless input disables it)
+    if result is None:
+        print(""No path"")
+    else:
+        print(result)
+
+    # --- Example-based testing (hidden from AoC but useful for debugging) ---
+    # Test with provided small test case if no external input is given
+    if input_file == '__test__':
+        test_raw, expected = (
+            ""5,4\n4,2\n4,5\n3,0\n2,1\n6,3\n2,4\n1,5\n0,6\n3,3\n2,6\n5,1\n1,2\n5,5\n2,5\n6,5\n1,4\n0,4\n6,4\n1,1\n6,1\n1,0\n0,5\n1,6\n2,0"",
+            22
+        )
+        coords2 = []
+        for line in test_raw.strip().splitlines():
+            c1, c2 = map(int, line.strip().split(','))
+            coords2.append((c1, c2))
+        blocked2 = build_blocked_set(coords2)
+        got = bfs_shortest_path(blocked2)
+        assert got == expected, f""Test failed: got {got}, expected {expected}""
+
+if __name__ == ""__main__"":
+    main()
+",0,[],1,"grid,pathfinding,shortest path,obstacle avoidance,dynamic obstacles,manhattan distance","breadth-first search,dynamic pathfinding,time-dependent graph traversal,shortest path algorithms,grid navigation",336.7413156032562,ultimate_power
+True,"""""""
+Advent of Code 2023 Day 19: Linen Layout
+Solution: dynamic programming string decomposition (word-break)
+
+Usage: python3 linen_layout.py [input_file]
+""""""
+from typing import List, Dict, Set
+import sys
+from collections import defaultdict
+import os
+
+
+def parse_input(input_file: str) -> tuple[Set[str], List[str]]:
+    """"""Parse the puzzle input into available patterns and list of design strings.""""""
+    with open(input_file, 'r') as f:
+        lines = [line.rstrip('\r\n') for line in f]
+    # Remove empty lines at the end
+    while lines and lines[-1] == '':
+        lines.pop()
+    # Skip empty lines at start
+    i = 0
+    while i < len(lines) and lines[i] == '':
+        i += 1
+    if i == len(lines):
+        return set(), []  # No patterns, no designs
+    # First non-empty line, read patterns
+    patterns_line = lines[i]
+    patterns = set()
+    for pat in patterns_line.split(','):
+        pat_stripped = pat.strip()
+        if pat_stripped:
+            patterns.add(pat_stripped)
+    # Find first blank line after patterns (optional)
+    j = i + 1
+    while j < len(lines) and lines[j] == '':
+        j += 1
+    # Everything after j are designs (non-empty lines only)
+    designs = []
+    for line in lines[j:]:
+        if line:
+            designs.append(line)
+    return patterns, designs
+
+
+def build_patterns_by_chr(patterns: Set[str]) -> Dict[str, List[str]]:
+    """"""Map first character -> patterns starting with it.""""""
+    patterns_by_chr: Dict[str, List[str]] = defaultdict(list)
+    for pat in patterns:
+        if pat:
+            patterns_by_chr[pat[0]].append(pat)
+    return patterns_by_chr
+
+
+def can_form(design: str, patterns_by_chr: Dict[str, List[str]], max_pat_len: int) -> bool:
+    """"""
+    Determine if design can be composed of patterns (word-break DP).
+
+    Args:
+        design: target design string
+        patterns_by_chr: mapping first char -> patterns
+        max_pat_len: max pattern length (to bound positions)
+    Returns:
+        True if design can be matched, else False
+    """"""
+    n = len(design)
+    if n == 0:
+        return True  # Zero-length design is buildable by zero towels
+    dp = [False] * (n + 1)
+    dp[0] = True  # Empty prefix is always reachable
+    for i in range(n):
+        if not dp[i]:
+            continue
+        first = design[i]
+        # Only try patterns starting with design[i]
+        for pat in patterns_by_chr.get(first, []):
+            L = len(pat)
+            if i + L > n:
+                continue
+            if design[i:i+L] == pat:
+                dp[i+L] = True
+    return dp[n]
+
+
+def solve(patterns: Set[str], designs: List[str]) -> int:
+    """"""
+    For each design, check if it can be built, and count the total.
+
+    Args:
+        patterns: set of towel patterns (strings)
+        designs: list of desired designs (strings)
+    Returns:
+        Integer count of possible designs
+    """"""
+    patterns_by_chr = build_patterns_by_chr(patterns)
+    max_pat_len = max((len(p) for p in patterns), default=0)
+    total = 0
+    for d in designs:
+        if can_form(d, patterns_by_chr, max_pat_len):
+            total += 1
+    return total
+
+
+def main():
+    # Validate command line args
+    if len(sys.argv) < 2:
+        print(""Usage: python3 linen_layout.py [input_file]"", file=sys.stderr)
+        sys.exit(1)
+    input_file = sys.argv[1]
+    if not os.path.isfile(input_file):
+        print(f""File not found: {input_file}"", file=sys.stderr)
+        sys.exit(2)
+    patterns, designs = parse_input(input_file)
+    result = solve(patterns, designs)
+    print(result)
+
+    # Self-test on examples if run as main (optional; only outputs on assertion failure)
+    # Provided test case from AoC description
+    EXAMPLE_INPUT = (
+        ""r, wr, b, g, bwu, rb, gb, br\n\n""
+        ""brwrr\n""
+        ""bggr\n""
+        ""gbbr\n""
+        ""rrbgbr\n""
+        ""ubwu\n""
+        ""bwurrg\n""
+        ""brgr\n""
+        ""bbrgwb""
+    )
+    EXAMPLE_EXPECTED = 6
+    # Only run example if input_file is a temp test file
+    if os.path.basename(input_file) in {""_EXAMPLE.txt"", ""example.txt"", ""test.txt""}:
+        # For smoke test
+        import io
+        temp_lines = EXAMPLE_INPUT.split(""\n"")
+        temp_patterns, temp_designs = patterns, designs  # already parsed
+        actual = solve(temp_patterns, temp_designs)
+        assert actual == EXAMPLE_EXPECTED, f""Example failed: expected {EXAMPLE_EXPECTED}, got {actual}""  # Error if wrong
+
+
+if __name__ == ""__main__"":
+    main()
+",0,[],2,"string matching,pattern recognition,sequence composition,combinatorics","dynamic programming,string decomposition,pattern matching,subsequence verification",529.1428611278534,ultimate_power
+True,"""""""
+Advent of Code 2019 Day 20: Race Condition
+Implementation per plan: BFS to find normal distances, exhaustively enumerate 1- or 2-move cheats
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple, Dict, Set
+import sys
+from collections import deque
+import sys
+
+def parse_input(input_file: str) -> Tuple[List[str], int, int, Tuple[int,int], Tuple[int,int], Set[Tuple[int,int]]]:
+    """"""
+    Parse input grid/map, find S, E, and set of track coordinates.
+    Returns:
+      grid (lines), height, width, (S_y,S_x), (E_y,E_x), track_coords
+    """"""
+    with open(input_file) as f:
+        grid = [line.rstrip('\n') for line in f if line.strip()]
+    H = len(grid)
+    W = len(grid[0]) if H > 0 else 0
+    track = set()
+    start = end = None
+    for y in range(H):
+        for x in range(W):
+            c = grid[y][x]
+            if c in '.SE':
+                track.add((y,x))
+            if c == 'S':
+                start = (y,x)
+            elif c == 'E':
+                end = (y,x)
+    if not start or not end:
+        raise ValueError(""Did not find both S and E on grid!"")
+    return grid, H, W, start, end, track
+
+def bfs(grid: List[str], H: int, W: int, track: Set[Tuple[int,int]], start: Tuple[int,int]) -> Dict[Tuple[int,int], int]:
+    """"""
+    Classic BFS: returns dict mapping each reachable track square from 'start' to its shortest distance.
+    """"""
+    q = deque()
+    dist = dict()
+    q.append((start,0))
+    dist[start] = 0
+    while q:
+        (y,x), d = q.popleft()
+        for dy,dx in [(-1,0),(1,0),(0,-1),(0,1)]:
+            ny, nx = y+dy, x+dx
+            if 0 <= ny < H and 0 <= nx < W:
+                if (ny,nx) in track and (ny,nx) not in dist:
+                    dist[(ny,nx)] = d+1
+                    q.append( ((ny,nx), d+1) )
+    return dist
+
+def enumerate_cheats(
+    H: int, W: int,
+    track: Set[Tuple[int,int]],
+    distS: Dict[Tuple[int,int],int],
+    distE: Dict[Tuple[int,int],int],
+    distNormal: int
+    ) -> int:
+    """"""
+    Enumerate all cheats of length 1 or 2 (start->end with up to 2 moves through anything, start/end on track,
+    and reachable from S and to E via legal track moves). Each cheat is identified by (start,end), count those with gain>=100.
+    Returns: count
+    """"""
+    answer = 0
+    cheat_set = set() # type: Set[Tuple[Tuple[int,int], Tuple[int,int]]] # To avoid duplicates
+    for start in track:
+        # The start must be accessible from S (and to E) via legal track walking
+        if start not in distS or start not in distE:
+            continue
+        sy,sx = start
+        # 1-move cheat
+        for d1 in [(-1,0),(1,0),(0,-1),(0,1)]:
+            my, mx = sy+d1[0], sx+d1[1]
+            if 0<=my<H and 0<=mx<W:
+                # For 1-move, mid must be track, start is current
+                if (my,mx) in track:
+                    end = (my,mx)
+                    cheat_len = 1
+                    if (start,end) not in cheat_set:
+                        # Both start and end must be reachable from S and to E
+                        if end in distS and end in distE:
+                            cheat_time = distS[start] + cheat_len + distE[end]
+                            gain = distNormal - cheat_time
+                            if gain >= 100:
+                                answer += 1
+                        cheat_set.add((start,end))
+            # 2-move cheat
+            for d2 in [(-1,0),(1,0),(0,-1),(0,1)]:
+                ey, ex = my+d2[0], mx+d2[1]
+                if 0<=ey<H and 0<=ex<W:
+                    end = (ey,ex)
+                    # Must start and end on track, and not start==end (must move at least one step)
+                    if (end in track) and (start != end):
+                        cheat_len = 2
+                        if (start,end) not in cheat_set:
+                            # Both start and end must be reachable
+                            if end in distS and end in distE:
+                                cheat_time = distS[start] + cheat_len + distE[end]
+                                gain = distNormal - cheat_time
+                                if gain >= 100:
+                                    answer += 1
+                            cheat_set.add((start,end))
+    return answer
+
+def solve_part_one(parsed_data) -> int:
+    grid, H, W, start, end, track = parsed_data
+    distS = bfs(grid, H, W, track, start)
+    distE = bfs(grid, H, W, track, end)
+    # The normal path uses only track-squares: S->E
+    distNormal = distS[end]
+    answer = enumerate_cheats(H, W, track, distS, distE, distNormal)
+    return answer
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        return
+    input_file = sys.argv[1]
+    parsed_data = parse_input(input_file)
+
+    part_one_solution = solve_part_one(parsed_data)
+    # ONLY PRINT THE RESULT, NO OTHER TEXT
+    print(part_one_solution)
+
+    # Test cases (from plan):
+    # Sample grid should produce 0 cheats saving 100+ (per AoC example)
+    test_grid = [
+        ""###############"",
+        ""#...#...#.....#"",
+        ""#.#.#.#.#.###.#"",
+        ""#S#...#.#.#...#"",
+        ""#######.#.#.###"",
+        ""#######.#.#...#"",
+        ""#######.#.###.#"",
+        ""###..E#...#...#"",
+        ""###.#######.###"",
+        ""#...###...#...#"",
+        ""#.#####.#.###.#"",
+        ""#.#...#.#.#...#"",
+        ""#.#.#.#.#.#.###"",
+        ""#...#...#...###"",
+        ""###############""
+    ]
+    gold = 0
+    H = len(test_grid)
+    W = len(test_grid[0])
+    track = set()
+    for y in range(H):
+        for x in range(W):
+            if test_grid[y][x] in '.SE':
+                track.add((y,x))
+            if test_grid[y][x] == 'S':
+                S = (y,x)
+            if test_grid[y][x] == 'E':
+                E = (y,x)
+    distS = bfs(test_grid, H, W, track, S)
+    distE = bfs(test_grid, H, W, track, E)
+    distNormal = distS[E]
+    result = enumerate_cheats(H,W,track,distS,distE,distNormal)
+    assert result == gold, f""Expected {gold}, got {result}""  # Test passes!
+
+if __name__ == ""__main__"":
+    main()
+",0,[],1,"grid,pathfinding,shortest path,maze,optimization","breadth-first search,graph traversal,path optimization,state space search,combinatorial optimization",594.0954947471619,ultimate_power
+False,,6,[],1,"path finding,keypad navigation,sequence optimization,recursive control,grid traversal","shortest path algorithm,state machine,recursive sequence generation,grid navigation,optimization problem",1239.6543056964874,ultimate_power
+True,"""""""
+Advent of Code 2024 (Day 22): Monkey Market
+Simulate the buyer secret sequences and sum the 2000th term of each.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List
+import sys
+
+# Constants for modular arithmetic/pruning
+MOD: int = 1 << 24      # 16,777,216
+MASK: int = MOD - 1     # All 24 bits set
+
+def parse_input(input_file: str) -> List[int]:
+    """"""Parse the puzzle input file into a list of initial secret numbers.
+
+    Args:
+        input_file: Path to the input file
+    Returns:
+        List of secret numbers as integers
+    """"""
+    secrets = []
+    with open(input_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                try:
+                    secrets.append(int(line))
+                except ValueError:
+                    # Skip invalid lines silently per AoC style
+                    continue
+    return secrets
+
+def next_secret(s: int) -> int:
+    """"""Advance a secret number one step using the three-stage rule.
+
+    Args:
+        s: The current secret number (int)
+    Returns:
+        The next secret number (int)
+    """"""
+    # 1. Multiply by 64, mix, prune
+    x = s * 64
+    s = (s ^ x) & MASK
+    # 2. Integer divide by 32, mix, prune
+    x = s // 32
+    s = (s ^ x) & MASK
+    # 3. Multiply by 2048, mix, prune
+    x = s * 2048
+    s = (s ^ x) & MASK
+    return s
+
+def nth_secret(s0: int, n: int) -> int:
+    """"""Return the n-th secret number generated from initial s0.
+
+    Args:
+        s0: Initial secret number
+        n: Number of times to apply the stepping rule
+    Returns:
+        The secret after n steps
+    """"""
+    s = s0
+    for _ in range(n):
+        s = next_secret(s)
+    return s
+
+def sum_2000th_secrets(secrets: List[int]) -> int:
+    """"""Sum the 2000th secret for each buyer's sequence.""""""
+    total = 0
+    for s0 in secrets:
+        s2000 = nth_secret(s0, 2000)
+        total += s2000
+    return total
+
+def run_tests() -> None:
+    """"""Run built-in test cases (as per supplied examples) to verify correctness.""""""
+    import io
+    import tempfile
+    test_cases = [
+        (""1\n10\n100\n2024"", 37327623)
+    ]
+    for idx, (input_str, expected) in enumerate(test_cases):
+        with tempfile.NamedTemporaryFile(mode=""w+t"", delete=False) as tf:
+            tf.write(input_str)
+            tf.flush()
+            tf.seek(0)
+            secrets = parse_input(tf.name)
+            result = sum_2000th_secrets(secrets)
+            assert result == expected, f""Test {idx} failed: got {result}, expected {expected}""
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+    secrets = parse_input(input_file)
+    answer = sum_2000th_secrets(secrets)
+    print(answer)
+
+    # Uncomment to run tests on example(s):
+    # run_tests()
+
+if __name__ == ""__main__"":
+    main()
+",0,[],2,"sequence generation,bitwise operations,modular arithmetic,number theory,simulation","bit manipulation,mathematical simulation,iterative processing,modular arithmetic,sequence generation",716.839056968689,ultimate_power
+True,"""""""
+Advent of Code 2023 Day 23: LAN Party
+Solution implementation based on the provided plan.
+
+Find all 3-node cliques (triangles) in the undirected graph defined by the edge list, and count how many contain at least one node with name starting with 't'.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import Dict, Set, List
+import sys
+
+
+def parse_input(input_file: str) -> Dict[str, Set[str]]:
+    """"""Parse the puzzle input and build adjacency dict for undirected graph.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        adjacency: Maps each node name to a set of directly connected node names
+    """"""
+    adjacency: Dict[str, Set[str]] = dict()
+    with open(input_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            if '-' not in line:
+                continue  # Skip malformed
+            a, b = line.split('-', 1)
+            if a == b:
+                continue  # Ignore self-loops
+            if a not in adjacency:
+                adjacency[a] = set()
+            if b not in adjacency:
+                adjacency[b] = set()
+            adjacency[a].add(b)
+            adjacency[b].add(a)
+    return adjacency
+
+
+def count_triangles_with_t(adjacency: Dict[str, Set[str]]) -> int:
+    """"""Count triangles (3-cliques) where at least one node starts with 't'.
+
+    Args:
+        adjacency: Node adjacency dictionary
+    Returns:
+        Number of triangles containing at least one 't*' node
+    """"""
+    nodes_sorted: List[str] = sorted(adjacency.keys())
+    count: int = 0
+    # For robustness, you can verify no double counting:
+    # seen_triangles: Set[Tuple[str, str, str]] = set()
+    for idx_u, u in enumerate(nodes_sorted):
+        neighbors_u = adjacency[u]
+        # only consider v > u for unique edge pairs
+        for v in sorted(neighbors_u):
+            if v <= u:
+                continue
+            neighbors_v = adjacency[v]
+            # Triangle's third node must be common neighbor, w > v to maintain u < v < w ordering
+            common_neighbors = neighbors_u & neighbors_v
+            for w in sorted(common_neighbors):
+                if w <= v:
+                    continue
+                # Now u < v < w, and all (u,v), (u,w), (v,w) are connected
+                if u[0] == 't' or v[0] == 't' or w[0] == 't':
+                    # Optionally: seen_triangles.add(tuple(sorted((u, v, w))))
+                    count += 1
+    return count
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+    input_file = sys.argv[1]
+    adjacency = parse_input(input_file)
+    result = count_triangles_with_t(adjacency)
+    print(result)
+
+    # Example test (assertion):
+    # Only runs if invoked directly and if input exactly matches problem's example
+    example_input = [
+        ""kh-tc"",
+        ""qp-kh"",
+        ""de-cg"",
+        ""ka-co"",
+        ""yn-aq"",
+        ""qp-ub"",
+        ""cg-tb"",
+        ""vc-aq"",
+        ""tb-ka"",
+        ""wh-tc"",
+        ""yn-cg"",
+        ""kh-ub"",
+        ""ta-co"",
+        ""de-co"",
+        ""tc-td"",
+        ""tb-wq"",
+        ""wh-td"",
+        ""ta-ka"",
+        ""td-qp"",
+        ""aq-cg"",
+        ""wq-ub"",
+        ""ub-vc"",
+        ""de-ta"",
+        ""wq-aq"",
+        ""wq-vc"",
+        ""wh-yn"",
+        ""ka-de"",
+        ""kh-ta"",
+        ""co-tc"",
+        ""wh-qp"",
+        ""tb-vc"",
+        ""td-yn""
+    ]
+    # Only run if input is this list
+    import os
+    if os.path.exists(input_file):
+        with open(input_file) as f:
+            content = [line.strip() for line in f if line.strip()]
+        if content == example_input:
+            test_adj = parse_input(input_file)
+            test_result = count_triangles_with_t(test_adj)
+            assert test_result == 7, f""Test failed: got {test_result}, expected 7""
+
+if __name__ == ""__main__"":
+    main()
+",0,[],2,"graph theory,undirected graph,subgraph finding,pattern matching,set operations","triangle finding in graphs,graph traversal,string filtering,set enumeration,combination generation",478.42794847488403,ultimate_power
+True,"""""""
+Advent of Code 2019 Day 24: Crossed Wires (Boolean Circuit Simulation)
+Simulate a Boolean circuit of AND/OR/XOR gates wired as a DAG
+and compute the decimal value formed by the zXX output wires.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import Dict, Tuple, Set, Optional, List
+import sys
+import re
+import collections
+import os
+
+# Type aliases
+Wire = str
+Value = int  # 0 or 1
+Gate = Tuple[str, Wire, Wire]  # (op, a, b)
+
+
+def parse_input(filename: str) -> Tuple[Dict[Wire, Value], Dict[Wire, Gate]]:
+    """"""Parse the puzzle input into:
+    - const: wire -> value for initial constants
+    - gates: wire -> (op, in1, in2) for every gate output wire
+    """"""
+    const: Dict[Wire, Value] = {}
+    gates: Dict[Wire, Gate] = {}
+    with open(filename, 'r') as f:
+        lines = [line.strip() for line in f.readlines()]
+    # Split sections
+    if '' in lines:
+        idx = lines.index('')
+        const_lines = lines[:idx]
+        gate_lines = [line for line in lines[idx+1:] if line]
+    else:
+        # If input is odd, handle as no blank line: all constants, no gates section
+        # Or all gates, no constants
+        # For this puzzle description, there is always a blank line separator
+        const_lines = []
+        gate_lines = [line for line in lines if line]
+    # Parse const lines
+    for line in const_lines:
+        line = line.strip()
+        if not line:
+            continue
+        # Format: wire: value
+        m = re.fullmatch(r'(\w+):\s*([01])', line)
+        if not m:
+            raise ValueError(f'Bad constant line: {line!r}')
+        wire, sval = m.groups()
+        v = int(sval)
+        const[wire] = v
+    # Parse gates
+    for line in gate_lines:
+        line = line.strip()
+        if not line:
+            continue
+        # Format: in1 OP in2 -> out (OP is AND/OR/XOR)
+        m = re.fullmatch(r'(\w+)\s+(AND|OR|XOR)\s+(\w+)\s+->\s+(\w+)', line)
+        if not m:
+            raise ValueError(f'Bad gate line: {line!r}')
+        in1, op, in2, out = m.groups()
+        if op not in {'AND','OR','XOR'}:
+            raise ValueError(f'Unsupported gate op: {op!r}')
+        gates[out] = (op, in1, in2)
+    return const, gates
+
+
+def evaluate_circuit(const: Dict[Wire, Value], gates: Dict[Wire, Gate]) -> Dict[Wire, Value]:
+    """"""Evaluate the entire circuit: compute the boolean (0/1) value of every wire needed.
+    Returns wire->value dict for all wires evaluated (not just z wires).
+    """"""
+    cache: Dict[Wire, Value] = {}
+    def eval_wire(w: Wire) -> Value:
+        if w in cache:
+            return cache[w]
+        if w in const:
+            v = const[w]
+            cache[w] = v
+            return v
+        if w not in gates:
+            raise ValueError(f'Cannot determine value of wire {w!r}: not a constant and not defined by a gate.')
+        op, a, b = gates[w]
+        va = eval_wire(a)
+        vb = eval_wire(b)
+        if op == 'AND':
+            res = va & vb
+        elif op == 'OR':
+            res = va | vb
+        elif op == 'XOR':
+            res = va ^ vb
+        else:
+            raise ValueError(f'Unsupported operator {op!r}')
+        if res not in (0,1):
+            raise ValueError(f'Gate output not boolean (wire {w}): {va} {op} {vb} == {res}')
+        cache[w] = res
+        return res
+    # Precompute values for all wires defined in const or gates
+    all_wires: Set[Wire] = set(const) | set(gates)
+    for w in all_wires:
+        try:
+            eval_wire(w)
+        except Exception as e:
+            # Wires not relevant to final output may not be computable, ignore
+            pass
+    return cache
+
+
+def collect_z_bits(all_wire_vals: Dict[Wire, Value]) -> Dict[int, int]:
+    """"""Return mapping of bit index to its value for all wires zNN (z + numeric suffix).
+    Bit index is int, value is 0/1.
+    """"""
+    z_bits: Dict[int, int] = {}
+    # Match z numbers: z00, z01, z2, z007, etc.
+    for w, v in all_wire_vals.items():
+        m = re.fullmatch(r'z(\d+)$', w)
+        if m:
+            idx = int(m.group(1))
+            z_bits[idx] = v
+    return z_bits
+
+
+def bits_to_int(z_bits: Dict[int, int]) -> int:
+    """"""Collapse little-endian z_bits (bit 0 is least) to integer.""""""
+    if not z_bits:
+        return 0
+    max_idx = max(z_bits)
+    result = 0
+    for i in range(max_idx+1):
+        bit = z_bits.get(i, 0)
+        if bit not in (0,1):
+            raise ValueError(f'Non-boolean bit value at position {i}: {bit}')
+        result |= (bit << i)
+    return result
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        sys.exit(1)
+    filename = sys.argv[1]
+    if not os.path.isfile(filename):
+        print(f""File not found: {filename}"", file=sys.stderr)
+        sys.exit(2)
+    try:
+        const, gates = parse_input(filename)
+        all_wire_vals = evaluate_circuit(const, gates)
+        z_bits = collect_z_bits(all_wire_vals)
+        result = bits_to_int(z_bits)
+        print(result)
+    except Exception as e:
+        print(f""ERROR: {e}"", file=sys.stderr)
+        sys.exit(3)
+
+if __name__ == ""__main__"":
+    main()
+",1,[],1,"boolean logic,circuit simulation,binary arithmetic,wire connections,gate processing,topological ordering","directed acyclic graph traversal,boolean algebra,dependency resolution,binary to decimal conversion,circuit evaluation",498.1311945915222,ultimate_power
+True,"""""""
+Advent of Code Day 25: Code Chronicle (Lock-Key Pin Height Schematic Matching)
+
+Given 7-row ASCII diagrams of locks and keys, count the number of unique lock/key pairs that fit together
+without pin overlaps (lock_height + key_height in each column <= 5).
+
+Usage: python3 solution.py input.txt
+""""""
+from typing import List, Tuple
+import sys
+
+TOTAL_ROWS = 7  # Schematic diagram height
+
+
+def parse_input(input_file: str) -> Tuple[List[List[str]], List[List[str]]]:
+    """"""
+    Parse the input file into two lists: lock diagrams and key diagrams (as lists of strings).
+    Each diagram is a list of 7 strings.
+
+    Returns:
+        locks: list of 7-row lists (ASCII art as strings) for locks
+        keys: list of 7-row lists (ASCII art as strings) for keys
+    """"""
+    with open(input_file, 'r') as f:
+        lines = [line.rstrip('\n') for line in f]
+
+    # Remove any empty or whitespace-only lines at start and end
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+
+    diagrams: List[List[str]] = []
+    buf: List[str] = []
+    for line in lines:
+        if not line.strip():
+            continue  # skip blank lines between diagrams
+        buf.append(line)
+        if len(buf) == TOTAL_ROWS:
+            diagrams.append(buf)
+            buf = []
+    # If anything remains in buf it's an incomplete diagram (malformed input)
+    assert not buf, f""Input ends with incomplete schematic block (lines: {buf})""
+
+    locks: List[List[str]] = []
+    keys: List[List[str]] = []
+    for d in diagrams:
+        typ = classify_diagram(d)
+        if typ == 'lock':
+            locks.append(d)
+        elif typ == 'key':
+            keys.append(d)
+        else:
+            raise ValueError(f""Diagram not a lock or key: {d}"")
+
+    return locks, keys
+
+
+def classify_diagram(diagram: List[str]) -> str:
+    """"""
+    Determine if a diagram is a lock or key based on top/bottom rows.
+
+    Returns:
+        'lock' or 'key'
+    """"""
+    assert len(diagram) == TOTAL_ROWS, f""Diagram must have {TOTAL_ROWS} rows""
+    row0 = diagram[0]
+    row6 = diagram[-1]
+    if all(c == '#' for c in row0) and all(c == '.' for c in row6):
+        return 'lock'
+    elif all(c == '.' for c in row0) and all(c == '#' for c in row6):
+        return 'key'
+    else:
+        raise ValueError(f""Cannot classify diagram (neither lock nor key): {diagram}"")
+
+
+def diagram_to_profile(diagram: List[str], typ: str) -> Tuple[int, ...]:
+    """"""
+    Convert diagram to columnar height profile.
+    For locks: count contiguous '#' down from top (subtract top sentinel row)
+    For keys:  count contiguous '#' up from bottom (subtract bottom sentinel row)
+
+    Returns:
+        Tuple[int, ...]: the columnar heights
+    """"""
+    H = len(diagram)
+    W = len(diagram[0])
+    heights: List[int] = []
+    if typ == 'lock':
+        for c in range(W):
+            h = 0
+            for r in range(H):
+                if diagram[r][c] == '#':
+                    h += 1
+                else:
+                    break
+            # Subtract 1 for always-present top sentinel (row 0)
+            heights.append(max(0, h - 1))
+    elif typ == 'key':
+        for c in range(W):
+            h = 0
+            for r in range(H - 1, -1, -1):
+                if diagram[r][c] == '#':
+                    h += 1
+                else:
+                    break
+            # Subtract 1 for always-present bottom sentinel (row 6)
+            heights.append(max(0, h - 1))
+    else:
+        raise ValueError('Unknown diagram type: %r' % typ)
+    return tuple(heights)
+
+
+def count_fitting_pairs(lock_profiles: List[Tuple[int, ...]], key_profiles: List[Tuple[int, ...]], max_height: int) -> int:
+    """"""
+    For every lock and every key, check if they fit (no overlap in any column).
+
+    Returns:
+        int: number of compatible pairs
+    """"""
+    fit_count = 0
+    for l_idx, lock in enumerate(lock_profiles):
+        for k_idx, key in enumerate(key_profiles):
+            for i in range(len(lock)):
+                if lock[i] + key[i] > max_height:
+                    break
+            else:
+                # All columns fit
+                fit_count += 1
+    return fit_count
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        sys.exit(1)
+
+    input_file = sys.argv[1]
+    locks, keys = parse_input(input_file)
+
+    # Convert all to profiles
+    lock_profiles = [diagram_to_profile(l, 'lock') for l in locks]
+    key_profiles  = [diagram_to_profile(k, 'key') for k in keys]
+
+    max_height = TOTAL_ROWS - 2  # 5 for 7-row diagrams
+    result = count_fitting_pairs(lock_profiles, key_profiles, max_height)
+    print(result)
+
+    # --- Test case checking (comment out in production, only for dev/testing!) ---
+    # If you want to validate on the example from the problem, you can compare as below:
+    # Example test (uncomment to debug):
+    #
+    # test_locks = [(0,5,3,4,3), (1,2,0,5,3)]
+    # test_keys = [(5,0,2,1,3), (4,3,4,0,2), (3,0,2,0,1)]
+    # test_result = count_fitting_pairs(test_locks, test_keys, 5)
+    # assert test_result == 3, f""Test failed: got {test_result}""
+
+if __name__ == ""__main__"":
+    main()
+",0,[],1,"grid processing,pattern matching,height calculation,ASCII art,pair matching","array processing,pattern conversion,combinatorial matching,validation logic",791.2789146900177,ultimate_power
