@@ -1,4 +1,5 @@
 from anthropic import Anthropic
+from anthropic import AnthropicVertex
 from models.base_model import BaseLanguageModel
 
 
@@ -7,7 +8,14 @@ class AnthropicLanguageModel(BaseLanguageModel):
     def __init__(self, model_name: str, api_key: str):
         super().__init__(model_name, api_key)
 
-        self.client = Anthropic(api_key=api_key)
+        self.use_vertex = '@' in model_name
+        if self.use_vertex:
+            self.client = AnthropicVertex(
+                project_id='gen-lang-client-0628958690', region='europe-west4',
+            )
+            self.logger.info('Using Anthropic Vertex client')
+        else:
+            self.client = Anthropic(api_key=api_key)
 
     def prompt(self, text: str) -> str:
 
