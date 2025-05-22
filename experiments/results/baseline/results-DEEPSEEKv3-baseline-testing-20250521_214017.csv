@@ -1,0 +1,4958 @@
+day,approach,model,success,time_taken,code
+1,single-model,deepseek-chat,True,26.86082911491394,"""""""
+Advent of Code Day 1: Historian Hysteria
+Solution for reconciling two lists of location IDs by calculating total distance between sorted pairs.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple
+import sys
+
+def parse_input(input_file: str) -> Tuple[List[int], List[int]]:
+    """"""Parse the puzzle input from file into two lists of integers.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        Tuple containing (left_list, right_list)
+    """"""
+    left = []
+    right = []
+
+    with open(input_file, 'r') as f:
+        for line in f:
+            if line.strip():
+                parts = line.split()
+                left.append(int(parts[0]))
+                right.append(int(parts[1]))
+
+    return left, right
+
+def calculate_total_distance(left: List[int], right: List[int]) -> int:
+    """"""Calculate the total distance between two lists by pairing sorted elements.
+
+    Args:
+        left: First list of numbers
+        right: Second list of numbers
+
+    Returns:
+        Total distance between all paired elements
+    """"""
+    # Sort both lists to pair smallest with smallest, etc.
+    left_sorted = sorted(left)
+    right_sorted = sorted(right)
+
+    total = 0
+
+    # Pair elements and sum their absolute differences
+    for l, r in zip(left_sorted, right_sorted):
+        total += abs(l - r)
+
+    return total
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        sys.exit(1)
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    left_list, right_list = parse_input(input_file)
+
+    # Calculate and print total distance
+    total_distance = calculate_total_distance(left_list, right_list)
+    print(total_distance)
+
+if __name__ == ""__main__"":
+    main()"
+1,system,deepseek-chat,False,704.2166872024536,
+2,single-model,deepseek-chat,True,42.836061239242554,"""""""
+Advent of Code Day 2: Red-Nosed Reports
+Solution implementation for analyzing reactor safety reports.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List
+import sys
+
+def parse_input(input_file: str) -> List[List[int]]:
+    """"""Parse the puzzle input from file into a list of reports.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        List of reports, where each report is a list of integers
+    """"""
+    reports = []
+    with open(input_file, 'r') as f:
+        for line in f:
+            report = list(map(int, line.strip().split()))
+            reports.append(report)
+    return reports
+
+def is_safe(report: List[int]) -> bool:
+    """"""Check if a report is safe according to the safety rules.
+
+    Args:
+        report: List of levels in the report
+
+    Returns:
+        True if the report is safe, False otherwise
+    """"""
+    if len(report) < 2:
+        return True  # Single level is considered safe
+
+    # Determine if the sequence is increasing or decreasing
+    is_increasing = None
+    for i in range(len(report) - 1):
+        diff = report[i+1] - report[i]
+        if diff == 0:
+            return False  # Levels must change
+
+        if is_increasing is None:
+            is_increasing = diff > 0
+        else:
+            if (is_increasing and diff < 0) or (not is_increasing and diff > 0):
+                return False  # Direction changed
+
+        if abs(diff) > 3 or abs(diff) < 1:
+            return False  # Difference out of bounds
+
+    return True
+
+def count_safe_reports(reports: List[List[int]]) -> int:
+    """"""Count the number of safe reports in the input.
+
+    Args:
+        reports: List of all reports
+
+    Returns:
+        Number of safe reports
+    """"""
+    return sum(1 for report in reports if is_safe(report))
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    reports = parse_input(input_file)
+
+    # Count safe reports
+    safe_count = count_safe_reports(reports)
+    print(safe_count)
+
+    # Test with examples
+    example_reports = [
+        [7, 6, 4, 2, 1],  # Safe
+        [1, 2, 7, 8, 9],  # Unsafe
+        [9, 7, 6, 2, 1],  # Unsafe
+        [1, 3, 2, 4, 5],  # Unsafe
+        [8, 6, 4, 4, 1],  # Unsafe
+        [1, 3, 6, 7, 9],  # Safe
+    ]
+
+    # Verify example outputs
+    assert is_safe(example_reports[0]) == True
+    assert is_safe(example_reports[1]) == False
+    assert is_safe(example_reports[2]) == False
+    assert is_safe(example_reports[3]) == False
+    assert is_safe(example_reports[4]) == False
+    assert is_safe(example_reports[5]) == True
+    assert count_safe_reports(example_reports) == 2
+
+if __name__ == ""__main__"":
+    main()"
+2,system,deepseek-chat,True,302.32813811302185,"""""""
+Advent of Code: Day 2 - Red-Nosed Reports
+Solution implementation to count safe reports based on given criteria.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+from typing import List
+
+def parse_input(input_file: str) -> List[List[int]]:
+    """"""Parse the puzzle input from file into a list of reports.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        List of reports, where each report is a list of integers
+    """"""
+    reports = []
+    with open(input_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line:  # skip empty lines
+                reports.append(list(map(int, line.split())))
+    return reports
+
+def is_safe_report(report: List[int]) -> bool:
+    """"""Determine if a report meets the safety criteria.
+
+    Args:
+        report: List of integers representing a report
+
+    Returns:
+        True if report is safe, False otherwise
+    """"""
+    if len(report) <= 1:
+        return True  # single number is trivially safe
+
+    diffs = []
+    for i in range(len(report)-1):
+        diff = report[i+1] - report[i]
+        if diff == 0:
+            return False  # equal adjacent numbers are unsafe
+        diffs.append(diff)
+
+    # Check if all diffs have same sign
+    all_positive = all(d > 0 for d in diffs)
+    all_negative = all(d < 0 for d in diffs)
+
+    if not (all_positive or all_negative):
+        return False  # mixed trends
+
+    # Check all absolute differences are between 1 and 3
+    for d in diffs:
+        if abs(d) < 1 or abs(d) > 3:
+            return False
+
+    return True
+
+def count_safe_reports(reports: List[List[int]]) -> int:
+    """"""Count how many reports in the input are safe.
+
+    Args:
+        reports: List of all reports
+
+    Returns:
+        Count of safe reports
+    """"""
+    return sum(1 for report in reports if is_safe_report(report))
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    reports = parse_input(input_file)
+
+    # Count safe reports
+    safe_count = count_safe_reports(reports)
+
+    # ONLY PRINT THE RESULT, NO OTHER TEXT
+    print(safe_count)
+
+if __name__ == ""__main__"":
+    main()"
+3,single-model,deepseek-chat,True,32.867923974990845,"""""""
+Advent of Code Day 3: Mull It Over
+Solution implementation for finding and summing valid mul instructions in corrupted memory.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+import re
+from typing import List, Tuple
+
+def parse_input(input_file: str) -> str:
+    """"""Parse the puzzle input from file into a string.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        The entire content of the input file as a string
+    """"""
+    with open(input_file, 'r') as f:
+        return f.read()
+
+def find_valid_mul_instructions(memory: str) -> List[Tuple[int, int]]:
+    """"""Find all valid mul instructions in the corrupted memory.
+
+    Args:
+        memory: The corrupted memory string
+
+    Returns:
+        List of tuples containing the two numbers from each valid mul instruction
+    """"""
+    # This regex matches exactly ""mul(number,number)"" with no extra characters
+    pattern = r'\bmul\((\d{1,3}),(\d{1,3})\)'
+    matches = re.findall(pattern, memory)
+
+    # Convert matched strings to integers and return as tuples
+    return [(int(x), int(y)) for x, y in matches]
+
+def calculate_mul_sum(instructions: List[Tuple[int, int]]) -> int:
+    """"""Calculate the sum of all valid mul instruction results.
+
+    Args:
+        instructions: List of number pairs from valid mul instructions
+
+    Returns:
+        The sum of all multiplications
+    """"""
+    return sum(x * y for x, y in instructions)
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    memory = parse_input(input_file)
+
+    # Find and process valid mul instructions
+    valid_instructions = find_valid_mul_instructions(memory)
+    result = calculate_mul_sum(valid_instructions)
+
+    # ONLY PRINT THE RESULT, NO OTHER TEXT
+    print(result)
+
+    # Test with example from problem description
+    # example = ""xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))""
+    # test_instructions = find_valid_mul_instructions(example)
+    # test_result = calculate_mul_sum(test_instructions)
+    # assert test_result == 161, f""Test failed. Expected 161, got {test_result}""
+
+if __name__ == ""__main__"":
+    main()"
+3,system,deepseek-chat,True,281.27682542800903,"""""""
+Advent of Code: Day 3 - Mull It Over
+Solution implementation to scan corrupted memory for valid mul(X,Y) instructions,
+multiply the numbers, and sum all results.
+
+Usage: python3 solution.py [input_file]
+""""""
+import re
+import sys
+
+def parse_input(input_file: str) -> str:
+    """"""Parse the puzzle input from file into a string.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        The entire file content as a single string
+    """"""
+    with open(input_file, 'r') as f:
+        return f.read()
+
+def find_valid_muls(memory_str: str) -> list[tuple[int, int]]:
+    """"""Find all valid mul(X,Y) instructions in the memory string.
+
+    Args:
+        memory_str: The corrupted memory string to search
+
+    Returns:
+        List of tuples containing valid (X, Y) pairs as integers
+    """"""
+    # Regex pattern to match mul(X,Y) where X and Y are 1-3 digit numbers
+    pattern = r""mul\((\d{1,3}),(\d{1,3})\)""
+    matches = re.findall(pattern, memory_str)
+
+    # Convert matched strings to integers
+    return [(int(x), int(y)) for x, y in matches]
+
+def calculate_sum(valid_pairs: list[tuple[int, int]]) -> int:
+    """"""Calculate the sum of all valid multiplications.
+
+    Args:
+        valid_pairs: List of (X, Y) number pairs
+
+    Returns:
+        The sum of all X*Y products
+    """"""
+    return sum(x * y for x, y in valid_pairs)
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        sys.exit(1)
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    memory_str = parse_input(input_file)
+
+    # Find all valid mul instructions
+    valid_pairs = find_valid_muls(memory_str)
+
+    # Calculate and print the sum
+    total = calculate_sum(valid_pairs)
+    print(total)
+
+if __name__ == ""__main__"":
+    main()"
+4,single-model,deepseek-chat,True,33.74616503715515,"""""""
+Advent of Code: Day 4 - Ceres Search
+Solution for finding all occurrences of 'XMAS' in a word search grid.
+The word can appear horizontally, vertically, diagonally, backwards, or overlapping.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple
+import sys
+
+
+def parse_input(input_file: str) -> List[str]:
+    """"""Parse the word search grid from the input file.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        List of strings representing each row of the grid
+    """"""
+    with open(input_file, 'r') as f:
+        return [line.strip() for line in f.readlines()]
+
+
+def count_xmas_occurrences(grid: List[str]) -> int:
+    """"""Count all occurrences of 'XMAS' in all possible directions.
+
+    Args:
+        grid: The word search grid
+
+    Returns:
+        Total count of 'XMAS' occurrences
+    """"""
+    if not grid or not grid[0]:
+        return 0
+
+    rows = len(grid)
+    cols = len(grid[0])
+    target = 'XMAS'
+    target_len = len(target)
+    count = 0
+
+    # Define all 8 possible directions (dx, dy)
+    directions = [
+        (1, 0),   # right
+        (-1, 0),   # left
+        (0, 1),    # down
+        (0, -1),   # up
+        (1, 1),    # right-down
+        (1, -1),   # right-up
+        (-1, 1),   # left-down
+        (-1, -1)   # left-up
+    ]
+
+    for y in range(rows):
+        for x in range(cols):
+            if grid[y][x] != 'X':
+                continue
+
+            for dx, dy in directions:
+                # Check if we can fit the word in this direction
+                if 0 <= x + (target_len-1)*dx < cols and 0 <= y + (target_len-1)*dy < rows:
+                    matched = True
+                    for i in range(1, target_len):
+                        nx = x + i*dx
+                        ny = y + i*dy
+                        if grid[ny][nx] != target[i]:
+                            matched = False
+                            break
+                    if matched:
+                        count += 1
+
+    return count
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+    grid = parse_input(input_file)
+    result = count_xmas_occurrences(grid)
+    print(result)
+
+
+if __name__ == ""__main__"":
+    main()"
+4,system,deepseek-chat,True,329.96869564056396,"""""""
+Advent of Code: Ceres Search - Count occurrences of 'XMAS' in a 2D grid
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+from typing import List, Tuple
+
+def parse_input(input_file: str) -> List[List[str]]:
+    """"""Parse the puzzle input from file into a 2D grid.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        A 2D list of characters representing the grid
+    """"""
+    with open(input_file, 'r') as f:
+        return [list(line.strip()) for line in f.readlines()]
+
+def count_xmas_occurrences(grid: List[List[str]]) -> int:
+    """"""Count all occurrences of 'XMAS' in the grid in all 8 directions.
+
+    Args:
+        grid: The 2D grid of characters
+
+    Returns:
+        Total count of 'XMAS' occurrences
+    """"""
+    if not grid or not grid[0]:
+        return 0
+
+    rows = len(grid)
+    cols = len(grid[0])
+    count = 0
+
+    # Define all 8 possible directions (dx, dy)
+    directions = [
+        (1, 0),   # down
+        (-1, 0),  # up
+        (0, 1),   # right
+        (0, -1),  # left
+        (1, 1),   # down-right
+        (1, -1),  # down-left
+        (-1, 1),  # up-right
+        (-1, -1)  # up-left
+    ]
+
+    # The word we're searching for
+    target = ['X', 'M', 'A', 'S']
+
+    for i in range(rows):
+        for j in range(cols):
+            # Check each direction from current position (i,j)
+            for di, dj in directions:
+                # Check if we can fit the word in this direction
+                valid = True
+                for k in range(4):
+                    ni, nj = i + di*k, j + dj*k
+                    if ni < 0 or ni >= rows or nj < 0 or nj >= cols:
+                        valid = False
+                        break
+                    if grid[ni][nj] != target[k]:
+                        valid = False
+                        break
+                if valid:
+                    count += 1
+
+    return count
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    grid = parse_input(input_file)
+
+    # Count occurrences
+    count = count_xmas_occurrences(grid)
+
+    # Print result (only the number, no other text)
+    print(count)
+
+if __name__ == ""__main__"":
+    main()"
+5,single-model,deepseek-chat,True,40.69738006591797,"""""""
+Advent of Code Day 5: Print Queue
+Solution for determining correctly ordered print updates and summing their middle pages.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Dict, Set, Tuple
+import sys
+
+def parse_input(input_file: str) -> Tuple[Dict[int, Set[int]], List[List[int]]]:
+    """"""Parse the input file into ordering rules and print updates.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        Tuple containing:
+            - rules: A dictionary mapping pages to the set of pages that must come after them
+            - updates: A list of print updates (each being a list of page numbers)
+    """"""
+    with open(input_file, 'r') as f:
+        content = f.read().split('\n')
+
+    # Split the input into rules and updates sections
+    separator = content.index('')
+    rules_section = content[:separator]
+    updates_section = content[separator+1:]
+
+    # Parse rules
+    rules: Dict[int, Set[int]] = {}
+    for line in rules_section:
+        if not line:
+            continue
+        x, y = map(int, line.split('|'))
+        if x not in rules:
+            rules[x] = set()
+        rules[x].add(y)
+
+    # Parse updates
+    updates: List[List[int]] = []
+    for line in updates_section:
+        if not line:
+            continue
+        update = list(map(int, line.split(',')))
+        updates.append(update)
+
+    return rules, updates
+
+def is_valid_update(update: List[int], rules: Dict[int, Set[int]]) -> bool:
+    """"""Check if a print update follows all applicable ordering rules.
+
+    Args:
+        update: The print update to check
+        rules: The ordering rules
+
+    Returns:
+        True if the update follows all applicable rules, False otherwise
+    """"""
+    # Create a mapping from page to its index in the update for quick lookup
+    page_positions = {page: idx for idx, page in enumerate(update)}
+
+    # Check all rules that involve pages in this update
+    for x in update:
+        if x not in rules:
+            continue
+        for y in rules[x]:
+            if y in page_positions and page_positions[y] <= page_positions[x]:
+                return False
+    return True
+
+def get_middle_page(update: List[int]) -> int:
+    """"""Get the middle page number of an update.
+
+    Args:
+        update: The print update
+
+    Returns:
+        The middle page number (for even-length updates, returns the left-middle)
+    """"""
+    return update[len(update) // 2]
+
+def solve(rules: Dict[int, Set[int]], updates: List[List[int]]) -> int:
+    """"""Solve the puzzle by finding valid updates and summing their middle pages.
+
+    Args:
+        rules: The ordering rules
+        updates: The print updates to check
+
+    Returns:
+        The sum of middle pages from valid updates
+    """"""
+    total = 0
+    for update in updates:
+        if is_valid_update(update, rules):
+            total += get_middle_page(update)
+    return total
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    rules, updates = parse_input(input_file)
+
+    # Solve the puzzle
+    result = solve(rules, updates)
+    print(result)
+
+if __name__ == ""__main__"":
+    main()"
+5,system,deepseek-chat,True,316.0179100036621,"""""""
+Advent of Code: Print Queue
+Solution implementation based on the provided plan.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import Dict, List, Set
+import sys
+
+def parse_input(input_file: str) -> tuple[Dict[int, Set[int]], List[List[int]]]:
+    """"""Parse the puzzle input from file into ordering rules and updates.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        A tuple containing:
+        - rules dictionary where rules[X] is a set of pages that must come after X
+        - list of updates (each update is a list of page numbers)
+    """"""
+    with open(input_file, 'r') as f:
+        content = f.read().split('\n\n')
+
+    # Parse rules
+    rules: Dict[int, Set[int]] = {}
+    for line in content[0].split('\n'):
+        if not line.strip():
+            continue
+        x, y = map(int, line.split('|'))
+        if x not in rules:
+            rules[x] = set()
+        rules[x].add(y)
+
+    # Parse updates
+    updates: List[List[int]] = []
+    for line in content[1].split('\n'):
+        if not line.strip():
+            continue
+        updates.append(list(map(int, line.split(','))))
+
+    return rules, updates
+
+def is_valid_update(update: List[int], rules: Dict[int, Set[int]]) -> bool:
+    """"""Check if an update follows all applicable ordering rules.
+
+    Args:
+        update: List of page numbers in the update
+        rules: Dictionary of ordering rules
+
+    Returns:
+        True if the update is valid, False otherwise
+    """"""
+    update_set = set(update)
+
+    # Create a mapping from page to its index for quick lookup
+    page_indices = {page: idx for idx, page in enumerate(update)}
+
+    for x in update:
+        if x in rules:
+            for y in rules[x]:
+                if y in update_set and page_indices[y] <= page_indices[x]:
+                    return False
+    return True
+
+def get_middle_number(update: List[int]) -> int:
+    """"""Get the middle page number of an update.
+
+    Args:
+        update: List of page numbers
+
+    Returns:
+        The middle page number (at position len(update)//2)
+    """"""
+    return update[len(update) // 2]
+
+def solve(rules: Dict[int, Set[int]], updates: List[List[int]]) -> int:
+    """"""Solve the puzzle by validating updates and summing middle numbers.
+
+    Args:
+        rules: Dictionary of ordering rules
+        updates: List of updates to validate
+
+    Returns:
+        Sum of middle numbers of valid updates
+    """"""
+    total = 0
+
+    for update in updates:
+        if is_valid_update(update, rules):
+            total += get_middle_number(update)
+
+    return total
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    rules, updates = parse_input(input_file)
+
+    # Solve the problem
+    solution = solve(rules, updates)
+
+    # ONLY PRINT THE RESULT, NO OTHER TEXT
+    print(solution)
+
+if __name__ == ""__main__"":
+    main()"
+6,single-model,deepseek-chat,False,43.667309284210205,"""""""
+Advent of Code Day 6: Guard Gallivant
+Solution implementation for predicting guard's patrol path.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple, Set
+import sys
+
+# Directions: up, right, down, left (order matters for turning right)
+DIRECTIONS = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+DIRECTION_SYMBOLS = ['^', '>', 'v', '<']
+
+def parse_input(input_file: str) -> Tuple[List[List[str]], Tuple[int, int, int]]:
+    """"""Parse the puzzle input from file into a grid and initial guard state.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        Tuple containing (grid, (start_row, start_col, direction_index))
+    """"""
+    grid = []
+    start_row, start_col, direction = -1, -1, -1
+
+    with open(input_file, 'r') as f:
+        for row, line in enumerate(f):
+            line = line.strip()
+            grid_row = list(line)
+            grid.append(grid_row)
+
+            # Find guard's initial position and direction
+            for col, char in enumerate(grid_row):
+                if char in DIRECTION_SYMBOLS:
+                    start_row, start_col = row, col
+                    direction = DIRECTION_SYMBOLS.index(char)
+
+    return grid, (start_row, start_col, direction)
+
+def simulate_guard_path(grid: List[List[str]], start: Tuple[int, int, int]) -> Set[Tuple[int, int]]:
+    """"""Simulate the guard's path until they leave the grid.
+
+    Args:
+        grid: The lab map with obstacles
+        start: Tuple of (start_row, start_col, direction_index)
+
+    Returns:
+        Set of all distinct positions visited by the guard
+    """"""
+    visited = set()
+    rows, cols = len(grid), len(grid[0]) if grid else 0
+    row, col, direction = start
+
+    while 0 <= row < rows and 0 <= col < cols:
+        # Mark current position as visited
+        visited.add((row, col))
+
+        # Check position in front
+        dr, dc = DIRECTIONS[direction]
+        next_row, next_col = row + dr, col + dc
+
+        if 0 <= next_row < rows and 0 <= next_col < cols and grid[next_row][next_col] != '#':
+            # Move forward
+            row, col = next_row, next_col
+        else:
+            # Turn right (direction index cycles with modulo)
+            direction = (direction + 1) % 4
+
+    return visited
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    grid, start = parse_input(input_file)
+
+    # Simulate guard path
+    visited_positions = simulate_guard_path(grid, start)
+
+    # Print result (number of distinct positions)
+    print(len(visited_positions))
+
+if __name__ == ""__main__"":
+    main()"
+6,system,deepseek-chat,True,390.6905930042267,"""""""
+Advent of Code: Guard Gallivant
+Simulate guard movement on a grid and count distinct visited positions.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+from typing import List, Tuple, Set
+
+def parse_input(input_file: str) -> Tuple[List[List[str]], Tuple[int, int], str]:
+    """"""Parse the input grid and find the guard's starting position and direction.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        A tuple containing:
+        - The grid as a 2D list
+        - The starting (x, y) position
+        - The starting direction ('^', '>', 'v', or '<')
+    """"""
+    with open(input_file, 'r') as f:
+        grid = [list(line.strip()) for line in f.readlines()]
+
+    # Find the guard's starting position and direction
+    for y in range(len(grid)):
+        for x in range(len(grid[y])):
+            if grid[y][x] in ['^', '>', 'v', '<']:
+                return grid, (x, y), grid[y][x]
+
+    raise ValueError(""No guard starting position found in input"")
+
+def simulate_guard_movement(grid: List[List[str]], start_pos: Tuple[int, int], start_dir: str) -> int:
+    """"""Simulate the guard's movement and count distinct visited positions.
+
+    Args:
+        grid: The 2D grid map
+        start_pos: (x, y) starting position
+        start_dir: Starting direction ('^', '>', 'v', or '<')
+
+    Returns:
+        Number of distinct positions visited before leaving the grid
+    """"""
+    # Define direction vectors and turn right mappings
+    directions = {
+        '^': {'dx': 0, 'dy': -1, 'right': '>'},
+        '>': {'dx': 1, 'dy': 0, 'right': 'v'},
+        'v': {'dx': 0, 'dy': 1, 'right': '<'},
+        '<': {'dx': -1, 'dy': 0, 'right': '^'}
+    }
+
+    x, y = start_pos
+    current_dir = start_dir
+    visited = {(x, y)}
+
+    while True:
+        # Get current direction info
+        dir_info = directions[current_dir]
+        dx, dy = dir_info['dx'], dir_info['dy']
+
+        # Calculate next position
+        next_x, next_y = x + dx, y + dy
+
+        # Check if next position is out of bounds
+        if (next_y < 0 or next_y >= len(grid) or
+            next_x < 0 or next_x >= len(grid[next_y])):
+            break
+
+        # Check if next position is an obstacle
+        if grid[next_y][next_x] == '#':
+            # Turn right
+            current_dir = dir_info['right']
+        else:
+            # Move forward
+            x, y = next_x, next_y
+            visited.add((x, y))
+
+    return len(visited)
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    grid, start_pos, start_dir = parse_input(input_file)
+
+    # Simulate movement and count visited positions
+    result = simulate_guard_movement(grid, start_pos, start_dir)
+
+    # Print the result (only the number, no extra text)
+    print(result)
+
+if __name__ == ""__main__"":
+    main()"
+7,single-model,deepseek-chat,False,37.14106822013855,"""""""
+Advent of Code Day 7: Bridge Repair
+Solution implementation for determining which equations can be made true with + and * operators.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Optional
+import sys
+from itertools import product
+
+
+def parse_input(input_file: str) -> List[Tuple[int, List[int]]]:
+    """"""Parse the puzzle input from file into a list of (target, numbers) tuples.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        List of tuples containing target value and list of numbers
+    """"""
+    equations = []
+    with open(input_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            target_str, numbers_str = line.split(':')
+            target = int(target_str)
+            numbers = list(map(int, numbers_str.strip().split()))
+            equations.append((target, numbers))
+    return equations
+
+
+def evaluate_equation(numbers: List[int], operators: List[str]) -> int:
+    """"""Evaluate the equation with given numbers and operators (left-to-right).
+
+    Args:
+        numbers: List of numbers in the equation
+        operators: List of operators ('+' or '*')
+
+    Returns:
+        Result of evaluating the equation
+    """"""
+    if not numbers:
+        return 0
+
+    result = numbers[0]
+    for i, op in enumerate(operators):
+        if op == '+':
+            result += numbers[i+1]
+        elif op == '*':
+            result *= numbers[i+1]
+    return result
+
+
+def can_solve_equation(target: int, numbers: List[int]) -> bool:
+    """"""Check if the equation can be solved with + and * operators.
+
+    Args:
+        target: Target value to achieve
+        numbers: List of numbers in the equation
+
+    Returns:
+        True if the equation can be solved, False otherwise
+    """"""
+    if len(numbers) == 1:
+        return numbers[0] == target
+
+    num_operators = len(numbers) - 1
+    for ops in product(['+', '*'], repeat=num_operators):
+        if evaluate_equation(numbers, ops) == target:
+            return True
+    return False
+
+
+def solve_part_one(equations: List[Tuple[int, List[int]]]) -> int:
+    """"""Solve part one of the puzzle.
+
+    Args:
+        equations: List of parsed equations (target, numbers)
+
+    Returns:
+        Sum of test values for equations that can be solved
+    """"""
+    total = 0
+    for target, numbers in equations:
+        if can_solve_equation(target, numbers):
+            total += target
+    return total
+
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    equations = parse_input(input_file)
+
+    # Solve part one
+    part_one_solution = solve_part_one(equations)
+    print(part_one_solution)
+
+
+if __name__ == ""__main__"":
+    main()"
+7,system,deepseek-chat,True,306.71013951301575,"""""""
+Advent of Code: Bridge Repair
+Solution implementation to determine which equations can be made true by inserting '+' or '*' operators.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+from itertools import product
+
+def parse_input(input_file: str) -> list[tuple[int, list[int]]]:
+    """"""Parse the puzzle input from file into appropriate data structures.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        List of tuples containing (test_value, list of numbers)
+    """"""
+    equations = []
+    with open(input_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            test_value_str, numbers_str = line.split(':', 1)
+            test_value = int(test_value_str)
+            numbers = list(map(int, numbers_str.strip().split()))
+            equations.append((test_value, numbers))
+    return equations
+
+def evaluate_combination(numbers: list[int], operators: list[str]) -> int:
+    """"""Evaluate a sequence of numbers with operators applied left-to-right.
+
+    Args:
+        numbers: List of numbers in the equation
+        operators: List of operators ('+' or '*') between numbers
+
+    Returns:
+        Result of evaluating the equation left-to-right
+    """"""
+    if not numbers:
+        return 0
+
+    result = numbers[0]
+    for i in range(len(operators)):
+        operator = operators[i]
+        next_num = numbers[i+1]
+        if operator == '+':
+            result += next_num
+        elif operator == '*':
+            result *= next_num
+    return result
+
+def is_equation_valid(test_value: int, numbers: list[int]) -> bool:
+    """"""Check if an equation can be made valid with any operator combination.
+
+    Args:
+        test_value: The target value to match
+        numbers: List of numbers in the equation
+
+    Returns:
+        True if any operator combination produces the test_value, False otherwise
+    """"""
+    if len(numbers) == 1:
+        return numbers[0] == test_value
+
+    # Generate all possible operator combinations
+    operator_possibilities = product(['+', '*'], repeat=len(numbers)-1)
+
+    for operators in operator_possibilities:
+        if evaluate_combination(numbers, operators) == test_value:
+            return True
+    return False
+
+def solve(equations: list[tuple[int, list[int]]]) -> int:
+    """"""Solve the puzzle by summing test values of valid equations.
+
+    Args:
+        equations: List of parsed equations (test_value, numbers)
+
+    Returns:
+        Sum of test values for all valid equations
+    """"""
+    total = 0
+    for test_value, numbers in equations:
+        if is_equation_valid(test_value, numbers):
+            total += test_value
+    return total
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    equations = parse_input(input_file)
+
+    # Solve
+    solution = solve(equations)
+    print(solution)
+
+if __name__ == ""__main__"":
+    main()"
+8,single-model,deepseek-chat,True,52.56098461151123,"""""""
+Advent of Code Day 8: Resonant Collinearity
+Solution implementation for finding antinodes in antenna grid.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import Dict, List, Set, Tuple
+import sys
+from collections import defaultdict
+
+
+def parse_input(input_file: str) -> Dict[str, List[Tuple[int, int]]]:
+    """"""Parse the puzzle input from file into a dictionary of antenna positions.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        Dictionary mapping frequencies to list of (x, y) positions
+    """"""
+    antennas = defaultdict(list)
+    with open(input_file, 'r') as f:
+        for y, line in enumerate(f):
+            line = line.strip()
+            for x, char in enumerate(line):
+                if char != '.':
+                    antennas[char].append((x, y))
+    return antennas
+
+
+def calculate_antinodes(antennas: Dict[str, List[Tuple[int, int]]]) -> Set[Tuple[int, int]]:
+    """"""Calculate all antinode positions based on antenna configurations.
+
+    Args:
+        antennas: Dictionary mapping frequencies to antenna positions
+
+    Returns:
+        Set of (x, y) coordinates where antinodes occur
+    """"""
+    antinodes = set()
+
+    for freq, positions in antennas.items():
+        # For each pair of antennas with same frequency
+        for i in range(len(positions)):
+            for j in range(i + 1, len(positions)):
+                x1, y1 = positions[i]
+                x2, y2 = positions[j]
+
+                # Calculate the antinode positions (one twice as far from first antenna)
+                # Antinode 1: (2x2 - x1, 2y2 - y1)
+                antinode1 = (2 * x2 - x1, 2 * y2 - y1)
+                antinodes.add(antinode1)
+
+                # Antinode 2: (2x1 - x2, 2y1 - y2)
+                antinode2 = (2 * x1 - x2, 2 * y1 - y2)
+                antinodes.add(antinode2)
+
+    return antinodes
+
+
+def get_grid_bounds(antennas: Dict[str, List[Tuple[int, int]]]) -> Tuple[int, int, int, int]:
+    """"""Determine the grid bounds based on antenna positions.
+
+    Args:
+        antennas: Dictionary mapping frequencies to antenna positions
+
+    Returns:
+        Tuple of (min_x, max_x, min_y, max_y)
+    """"""
+    all_positions = [pos for positions in antennas.values() for pos in positions]
+    if not all_positions:
+        return (0, 0, 0, 0)
+
+    min_x = min(pos[0] for pos in all_positions)
+    max_x = max(pos[0] for pos in all_positions)
+    min_y = min(pos[1] for pos in all_positions)
+    max_y = max(pos[1] for pos in all_positions)
+
+    return (min_x, max_x, min_y, max_y)
+
+
+def solve_part_one(antennas: Dict[str, List[Tuple[int, int]]]) -> int:
+    """"""Solve part one of the puzzle - count antinodes within grid bounds.
+
+    Args:
+        antennas: Dictionary mapping frequencies to antenna positions
+
+    Returns:
+        Number of unique antinode locations within grid bounds
+    """"""
+    antinodes = calculate_antinodes(antennas)
+    min_x, max_x, min_y, max_y = get_grid_bounds(antennas)
+
+    # Count antinodes within bounds
+    count = 0
+    for x, y in antinodes:
+        if min_x <= x <= max_x and min_y <= y <= max_y:
+            count += 1
+
+    return count
+
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    antennas = parse_input(input_file)
+
+    # Solve part one
+    part_one_solution = solve_part_one(antennas)
+    print(part_one_solution)
+
+
+if __name__ == ""__main__"":
+    main()"
+8,system,deepseek-chat,True,360.5613021850586,"""""""
+Advent of Code: Resonant Collinearity
+Solution implementation to calculate antinodes in an antenna grid.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+from collections import defaultdict
+from typing import List, Dict, Set, Tuple
+
+def parse_input(input_file: str) -> Tuple[Dict[str, List[Tuple[int, int]]], int, int]:
+    """"""Parse the puzzle input from file into antenna positions and grid dimensions.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        Tuple containing:
+            - Dictionary mapping frequencies to antenna positions
+            - Grid width
+            - Grid height
+    """"""
+    antennas = defaultdict(list)
+    grid = []
+
+    with open(input_file, 'r') as f:
+        for y, line in enumerate(f):
+            line = line.strip()
+            if not line:
+                continue
+            grid.append(line)
+            for x, char in enumerate(line):
+                if char != '.':
+                    antennas[char].append((x, y))
+
+    if not grid:
+        return (defaultdict(list), 0, 0)
+
+    width = len(grid[0])
+    height = len(grid)
+
+    return (antennas, width, height)
+
+def calculate_antinodes(
+    antennas: Dict[str, List[Tuple[int, int]]],
+    width: int,
+    height: int
+) -> Set[Tuple[int, int]]:
+    """"""Calculate all valid antinodes within grid bounds.
+
+    Args:
+        antennas: Dictionary mapping frequencies to antenna positions
+        width: Grid width
+        height: Grid height
+
+    Returns:
+        Set of coordinates containing antinodes
+    """"""
+    antinodes = set()
+
+    for freq, positions in antennas.items():
+        # Need at least two antennas of same frequency to create antinodes
+        if len(positions) < 2:
+            continue
+
+        # Check all pairs of antennas with this frequency
+        for i in range(len(positions)):
+            for j in range(i + 1, len(positions)):
+                x1, y1 = positions[i]
+                x2, y2 = positions[j]
+
+                # Calculate the two possible antinodes for this pair
+                # Antinode 1: Point where (x1,y1) is twice as far as (x2,y2)
+                ant1_x = 2 * x1 - x2
+                ant1_y = 2 * y1 - y2
+
+                # Antinode 2: Point where (x2,y2) is twice as far as (x1,y1)
+                ant2_x = 2 * x2 - x1
+                ant2_y = 2 * y2 - y1
+
+                # Check if antinodes are within grid bounds
+                if 0 <= ant1_x < width and 0 <= ant1_y < height:
+                    antinodes.add((ant1_x, ant1_y))
+                if 0 <= ant2_x < width and 0 <= ant2_y < height:
+                    antinodes.add((ant2_x, ant2_y))
+
+    return antinodes
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    antennas, width, height = parse_input(input_file)
+
+    # Calculate antinodes
+    antinodes = calculate_antinodes(antennas, width, height)
+
+    # Print the count of unique antinodes
+    print(len(antinodes))
+
+if __name__ == ""__main__"":
+    main()"
+9,single-model,deepseek-chat,False,59.13036322593689,"""""""
+Advent of Code Day 9: Disk Fragmenter
+Solution implementation for compacting disk fragments and calculating checksum.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple
+import sys
+
+def parse_input(input_file: str) -> List[Tuple[int, int]]:
+    """"""Parse the puzzle input from file into a list of (file_length, free_space) tuples.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        List of tuples representing alternating file lengths and free space lengths
+    """"""
+    with open(input_file, 'r') as f:
+        content = f.read().strip()
+
+    # Convert each character to integer and create pairs
+    digits = [int(c) for c in content]
+
+    # Group into (file_length, free_space) pairs
+    # If odd length, last file has no free space after it
+    pairs = []
+    for i in range(0, len(digits), 2):
+        file_len = digits[i]
+        free_len = digits[i+1] if i+1 < len(digits) else 0
+        pairs.append((file_len, free_len))
+
+    return pairs
+
+def build_initial_layout(pairs: List[Tuple[int, int]]) -> List[int]:
+    """"""Build the initial disk layout from file and free space pairs.
+
+    Args:
+        pairs: List of (file_length, free_space) tuples
+
+    Returns:
+        List where file blocks are represented by their ID and free space by -1
+    """"""
+    layout = []
+    file_id = 0
+
+    for file_len, free_len in pairs:
+        # Add file blocks with current file_id
+        layout.extend([file_id] * file_len)
+        file_id += 1
+
+        # Add free space (-1 represents free space)
+        layout.extend([-1] * free_len)
+
+    return layout
+
+def compact_disk(layout: List[int]) -> List[int]:
+    """"""Compact the disk by moving file blocks to the leftmost free space.
+
+    Args:
+        layout: Initial disk layout
+
+    Returns:
+        Compacted disk layout
+    """"""
+    compacted = layout.copy()
+
+    while True:
+        # Find the rightmost file block that can be moved left
+        move_from = -1
+        for i in range(len(compacted) - 1, -1, -1):
+            if compacted[i] != -1:
+                # Check if there's free space to the left
+                if i > 0 and compacted[i-1] == -1:
+                    move_from = i
+                    break
+
+        if move_from == -1:
+            break  # No more moves possible
+
+        # Move the block to the leftmost free space
+        # Find the leftmost free space
+        move_to = -1
+        for i in range(move_from):
+            if compacted[i] == -1:
+                move_to = i
+                break
+
+        if move_to == -1:
+            break  # No free space to move to
+
+        # Perform the move
+        compacted[move_to] = compacted[move_from]
+        compacted[move_from] = -1
+
+    return compacted
+
+def calculate_checksum(layout: List[int]) -> int:
+    """"""Calculate the filesystem checksum.
+
+    Args:
+        layout: Compacted disk layout
+
+    Returns:
+        The calculated checksum
+    """"""
+    checksum = 0
+
+    for pos, file_id in enumerate(layout):
+        if file_id != -1:  # Skip free space
+            checksum += pos * file_id
+
+    return checksum
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    pairs = parse_input(input_file)
+
+    # Build initial layout
+    layout = build_initial_layout(pairs)
+
+    # Compact the disk
+    compacted = compact_disk(layout)
+
+    # Calculate checksum
+    checksum = calculate_checksum(compacted)
+
+    # ONLY PRINT THE RESULT, NO OTHER TEXT
+    print(checksum)
+
+if __name__ == ""__main__"":
+    main()"
+9,system,deepseek-chat,False,622.5865807533264,
+10,single-model,deepseek-chat,True,51.5145788192749,"""""""
+Advent of Code Day 10: Hoof It
+Solution implementation for finding the sum of trailhead scores on a topographic map.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple, Set
+import sys
+from collections import deque
+
+def parse_input(input_file: str) -> List[List[int]]:
+    """"""Parse the puzzle input from file into a 2D grid of heights.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        2D list representing the height map
+    """"""
+    with open(input_file, 'r') as f:
+        return [[int(c) for c in line.strip()] for line in f]
+
+def find_trailheads(grid: List[List[int]]) -> List[Tuple[int, int]]:
+    """"""Find all trailhead positions (height 0) in the grid.
+
+    Args:
+        grid: 2D height map
+
+    Returns:
+        List of (row, col) positions of trailheads
+    """"""
+    trailheads = []
+    for i, row in enumerate(grid):
+        for j, height in enumerate(row):
+            if height == 0:
+                trailheads.append((i, j))
+    return trailheads
+
+def get_neighbors(grid: List[List[int]], pos: Tuple[int, int]) -> List[Tuple[int, int]]:
+    """"""Get valid neighboring positions (up, down, left, right) within grid bounds.
+
+    Args:
+        grid: 2D height map
+        pos: Current (row, col) position
+
+    Returns:
+        List of valid neighboring positions
+    """"""
+    rows, cols = len(grid), len(grid[0])
+    i, j = pos
+    neighbors = []
+    for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        ni, nj = i + di, j + dj
+        if 0 <= ni < rows and 0 <= nj < cols:
+            neighbors.append((ni, nj))
+    return neighbors
+
+def calculate_trailhead_score(grid: List[List[int]], start: Tuple[int, int]) -> int:
+    """"""Calculate the score for a trailhead (number of reachable 9s via valid trails).
+
+    Args:
+        grid: 2D height map
+        start: (row, col) position of the trailhead
+
+    Returns:
+        Number of distinct 9-height positions reachable via valid trails
+    """"""
+    visited = set()
+    queue = deque()
+    queue.append(start)
+    visited.add(start)
+    reachable_nines = set()
+
+    while queue:
+        current = queue.popleft()
+        current_height = grid[current[0]][current[1]]
+
+        for neighbor in get_neighbors(grid, current):
+            neighbor_height = grid[neighbor[0]][neighbor[1]]
+
+            # Valid move: next height is exactly +1 from current
+            if neighbor_height == current_height + 1 and neighbor not in visited:
+                visited.add(neighbor)
+                queue.append(neighbor)
+
+                # If we reached a 9, add to our count
+                if neighbor_height == 9:
+                    reachable_nines.add(neighbor)
+
+    return len(reachable_nines)
+
+def solve_part_one(grid: List[List[int]]) -> int:
+    """"""Solve part one of the puzzle - sum of all trailhead scores.
+
+    Args:
+        grid: 2D height map
+
+    Returns:
+        Sum of scores for all trailheads
+    """"""
+    trailheads = find_trailheads(grid)
+    total_score = 0
+
+    for trailhead in trailheads:
+        score = calculate_trailhead_score(grid, trailhead)
+        total_score += score
+
+    return total_score
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    grid = parse_input(input_file)
+
+    # Solve part one
+    part_one_solution = solve_part_one(grid)
+    print(part_one_solution)
+
+if __name__ == ""__main__"":
+    main()"
+10,system,deepseek-chat,True,304.40476751327515,"""""""
+Advent of Code: Hoof It - Trailhead Scores
+Solution implementation based on the provided plan.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple, Set
+from collections import deque
+import sys
+
+def parse_input(input_file: str) -> List[List[int]]:
+    """"""Parse the puzzle input from file into a 2D grid of integers.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        2D list representing the height grid
+    """"""
+    with open(input_file, 'r') as f:
+        return [[int(c) for c in line.strip()] for line in f if line.strip()]
+
+def find_trailheads(grid: List[List[int]]) -> List[Tuple[int, int]]:
+    """"""Identify all trailhead positions (height 0) in the grid.
+
+    Args:
+        grid: 2D list of heights
+
+    Returns:
+        List of (row, col) positions of trailheads
+    """"""
+    trailheads = []
+    for i in range(len(grid)):
+        for j in range(len(grid[i])):
+            if grid[i][j] == 0:
+                trailheads.append((i, j))
+    return trailheads
+
+def count_reachable_nines(grid: List[List[int]], start: Tuple[int, int]) -> int:
+    """"""Count reachable 9-height positions from a trailhead using BFS.
+
+    Args:
+        grid: 2D list of heights
+        start: (row, col) position of the trailhead
+
+    Returns:
+        Number of reachable 9-height positions
+    """"""
+    rows, cols = len(grid), len(grid[0])
+    queue = deque()
+    queue.append(start)
+    visited = set()
+    visited.add(start)
+    count = 0
+
+    # Directions: up, down, left, right
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    while queue:
+        i, j = queue.popleft()
+        current_height = grid[i][j]
+
+        if current_height == 9:
+            count += 1
+            continue  # Can't go higher than 9
+
+        for di, dj in directions:
+            ni, nj = i + di, j + dj
+
+            # Check boundaries
+            if 0 <= ni < rows and 0 <= nj < cols:
+                next_height = grid[ni][nj]
+
+                # Check if next cell is exactly 1 higher and not visited
+                if next_height == current_height + 1 and (ni, nj) not in visited:
+                    visited.add((ni, nj))
+                    queue.append((ni, nj))
+
+    return count
+
+def sum_trailhead_scores(grid: List[List[int]]) -> int:
+    """"""Calculate the sum of scores for all trailheads in the grid.
+
+    Args:
+        grid: 2D list of heights
+
+    Returns:
+        Sum of all trailhead scores
+    """"""
+    trailheads = find_trailheads(grid)
+    total = 0
+
+    for trailhead in trailheads:
+        total += count_reachable_nines(grid, trailhead)
+
+    return total
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    grid = parse_input(input_file)
+
+    # Calculate and print the result
+    result = sum_trailhead_scores(grid)
+    print(result)
+
+if __name__ == ""__main__"":
+    main()"
+11,single-model,deepseek-chat,True,34.46930956840515,"""""""
+Advent of Code: Plutonian Pebbles
+Solution for Day 11 - Simulates the transformation of stones according to given rules.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List
+import sys
+
+def parse_input(input_file: str) -> List[int]:
+    """"""Parse the puzzle input from file into a list of integers.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        List of initial stone numbers
+    """"""
+    with open(input_file, 'r') as f:
+        content = f.read().strip()
+        if not content:
+            return []
+        return [int(num) for num in content.split()]
+
+def apply_rules(number: int) -> List[int]:
+    """"""Apply the transformation rules to a single stone number.
+
+    Args:
+        number: The current number on the stone
+
+    Returns:
+        List of resulting numbers after transformation
+    """"""
+    if number == 0:
+        return [1]
+
+    num_str = str(number)
+    if len(num_str) % 2 == 0:
+        half = len(num_str) // 2
+        left = int(num_str[:half])
+        right = int(num_str[half:])
+        return [left, right]
+
+    return [number * 2024]
+
+def simulate_blinks(initial_stones: List[int], blinks: int = 25) -> List[int]:
+    """"""Simulate the stone transformations over multiple blinks.
+
+    Args:
+        initial_stones: Starting list of stone numbers
+        blinks: Number of blinks to simulate (default 25)
+
+    Returns:
+        Final list of stone numbers after all transformations
+    """"""
+    current_stones = initial_stones.copy()
+
+    for _ in range(blinks):
+        new_stones = []
+        for num in current_stones:
+            new_stones.extend(apply_rules(num))
+        current_stones = new_stones
+
+    return current_stones
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    initial_stones = parse_input(input_file)
+
+    # Simulate 25 blinks
+    final_stones = simulate_blinks(initial_stones, 25)
+
+    # Print only the count of stones after 25 blinks
+    print(len(final_stones))
+
+if __name__ == ""__main__"":
+    main()"
+11,system,deepseek-chat,True,311.8182454109192,"""""""
+Advent of Code: Plutonian Pebbles
+Simulate the evolution of stones over 25 blinks according to specific rules.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+from typing import List
+
+def parse_input(input_str: str) -> List[int]:
+    """"""Parse the initial sequence of stones from the input string.
+
+    Args:
+        input_str: Space-separated string of integers representing stones
+
+    Returns:
+        List of integers representing initial stone sequence
+    """"""
+    return [int(num) for num in input_str.split()]
+
+def transform_stone(stone: int) -> List[int]:
+    """"""Apply transformation rules to a single stone.
+
+    Args:
+        stone: The stone value to transform
+
+    Returns:
+        List of one or two transformed stones
+    """"""
+    # Rule 1: 0 becomes 1
+    if stone == 0:
+        return [1]
+
+    # Rule 2: Even number of digits splits into halves
+    stone_str = str(stone)
+    if len(stone_str) % 2 == 0:
+        half = len(stone_str) // 2
+        left = int(stone_str[:half])
+        right = int(stone_str[half:])
+        return [left, right]
+
+    # Rule 3: Multiply by 2024
+    return [stone * 2024]
+
+def simulate_blinks(stones: List[int], blinks: int = 25) -> int:
+    """"""Simulate the stone transformations over multiple blinks.
+
+    Args:
+        stones: Initial list of stone values
+        blinks: Number of blinks to simulate (default 25)
+
+    Returns:
+        Number of stones after all blinks
+    """"""
+    for _ in range(blinks):
+        new_stones = []
+        for stone in stones:
+            new_stones.extend(transform_stone(stone))
+        stones = new_stones
+    return len(stones)
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Read input
+    with open(input_file, 'r') as f:
+        input_str = f.read().strip()
+
+    # Parse input
+    initial_stones = parse_input(input_str)
+
+    # Simulate and get result
+    result = simulate_blinks(initial_stones)
+
+    # Print only the result (as per requirements)
+    print(result)
+
+if __name__ == ""__main__"":
+    main()"
+12,single-model,deepseek-chat,True,48.43627738952637,"""""""
+Advent of Code Day 12: Garden Groups
+Solution implementation for calculating total fencing price of garden regions.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Dict, Tuple, Set
+import sys
+from collections import deque
+
+def parse_input(input_file: str) -> List[List[str]]:
+    """"""Parse the puzzle input from file into a 2D grid.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        2D list representing the garden grid
+    """"""
+    with open(input_file, 'r') as f:
+        return [list(line.strip()) for line in f.readlines()]
+
+def find_regions(grid: List[List[str]]) -> Dict[str, List[Set[Tuple[int, int]]]]:
+    """"""Identify all regions in the garden grid.
+
+    Args:
+        grid: 2D list representing the garden
+
+    Returns:
+        Dictionary mapping plant types to lists of regions (sets of coordinates)
+    """"""
+    regions = {}
+    visited = set()
+    rows, cols = len(grid), len(grid[0]) if grid else (0, 0)
+
+    for i in range(rows):
+        for j in range(cols):
+            if (i, j) not in visited:
+                plant_type = grid[i][j]
+                # BFS to find all connected plots of the same type
+                queue = deque([(i, j)])
+                current_region = set()
+
+                while queue:
+                    x, y = queue.popleft()
+                    if (x, y) in visited:
+                        continue
+
+                    visited.add((x, y))
+                    current_region.add((x, y))
+
+                    # Check adjacent cells
+                    for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+                        nx, ny = x + dx, y + dy
+                        if 0 <= nx < rows and 0 <= ny < cols and grid[nx][ny] == plant_type:
+                            queue.append((nx, ny))
+
+                # Add the region to the dictionary
+                if plant_type not in regions:
+                    regions[plant_type] = []
+                regions[plant_type].append(current_region)
+
+    return regions
+
+def calculate_perimeter(grid: List[List[str]], region: Set[Tuple[int, int]]) -> int:
+    """"""Calculate the perimeter of a given region.
+
+    Args:
+        grid: 2D list representing the garden
+        region: Set of coordinates belonging to the region
+
+    Returns:
+        Perimeter of the region
+    """"""
+    perimeter = 0
+    rows, cols = len(grid), len(grid[0])
+
+    for x, y in region:
+        # Check all four sides
+        for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+            nx, ny = x + dx, y + dy
+            if (nx, ny) not in region:
+                perimeter += 1
+
+    return perimeter
+
+def calculate_total_price(grid: List[List[str]]) -> int:
+    """"""Calculate the total price of fencing all regions.
+
+    Args:
+        grid: 2D list representing the garden
+
+    Returns:
+        Total price of fencing all regions
+    """"""
+    regions = find_regions(grid)
+    total_price = 0
+
+    for plant_type in regions:
+        for region in regions[plant_type]:
+            area = len(region)
+            perimeter = calculate_perimeter(grid, region)
+            total_price += area * perimeter
+
+    return total_price
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    grid = parse_input(input_file)
+
+    # Calculate total price
+    total_price = calculate_total_price(grid)
+
+    # Print the result (only this line should output to stdout)
+    print(total_price)
+
+if __name__ == ""__main__"":
+    main()"
+12,system,deepseek-chat,True,370.64507579803467,"""""""
+Advent of Code: Garden Groups
+Solution implementation to calculate total fencing price for garden regions.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple, Dict
+import sys
+from collections import deque
+
+def parse_input(input_file: str) -> List[List[str]]:
+    """"""Parse the puzzle input from file into a 2D grid.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        2D list representing the garden grid
+    """"""
+    with open(input_file, 'r') as f:
+        return [list(line.strip()) for line in f.readlines()]
+
+def find_regions(grid: List[List[str]]) -> List[Dict]:
+    """"""Identify all contiguous regions in the grid and calculate their properties.
+
+    Args:
+        grid: 2D list representing the garden
+
+    Returns:
+        List of dictionaries containing region properties (letter, area, perimeter)
+    """"""
+    rows = len(grid)
+    if rows == 0:
+        return []
+    cols = len(grid[0])
+
+    visited = [[False for _ in range(cols)] for _ in range(rows)]
+    regions = []
+
+    # Directions for checking neighbors (up, down, left, right)
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    for i in range(rows):
+        for j in range(cols):
+            if not visited[i][j]:
+                # Start a new region
+                letter = grid[i][j]
+                queue = deque([(i, j)])
+                visited[i][j] = True
+                region_plots = [(i, j)]
+
+                # BFS to find all connected plots
+                while queue:
+                    x, y = queue.popleft()
+                    for dx, dy in directions:
+                        nx, ny = x + dx, y + dy
+                        if 0 <= nx < rows and 0 <= ny < cols:
+                            if not visited[nx][ny] and grid[nx][ny] == letter:
+                                visited[nx][ny] = True
+                                queue.append((nx, ny))
+                                region_plots.append((nx, ny))
+
+                # Calculate perimeter for this region
+                perimeter = 0
+                for x, y in region_plots:
+                    for dx, dy in directions:
+                        nx, ny = x + dx, y + dy
+                        if nx < 0 or nx >= rows or ny < 0 or ny >= cols:
+                            perimeter += 1  # Boundary
+                        elif grid[nx][ny] != letter:
+                            perimeter += 1  # Different region
+
+                regions.append({
+                    'letter': letter,
+                    'area': len(region_plots),
+                    'perimeter': perimeter
+                })
+
+    return regions
+
+def calculate_total_price(regions: List[Dict]) -> int:
+    """"""Calculate the total price by summing area * perimeter for all regions.
+
+    Args:
+        regions: List of region dictionaries
+
+    Returns:
+        Total price as integer
+    """"""
+    return sum(region['area'] * region['perimeter'] for region in regions)
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    grid = parse_input(input_file)
+
+    # Find regions and calculate their properties
+    regions = find_regions(grid)
+
+    # Calculate and print total price
+    total_price = calculate_total_price(regions)
+    print(total_price)
+
+if __name__ == ""__main__"":
+    main()"
+13,single-model,deepseek-chat,True,62.67249512672424,"""""""
+Advent of Code Day 13: Claw Contraption
+Solution implementation for winning prizes from claw machines with minimal tokens.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Dict, Tuple, Optional
+import sys
+import re
+
+class ClawMachine:
+    """"""Represents a claw machine with its button configurations and prize location.""""""
+    def __init__(self, a_x: int, a_y: int, b_x: int, b_y: int, prize_x: int, prize_y: int):
+        self.a_x = a_x  # X movement for button A
+        self.a_y = a_y  # Y movement for button A
+        self.b_x = b_x  # X movement for button B
+        self.b_y = b_y  # Y movement for button B
+        self.prize_x = prize_x  # Target X position
+        self.prize_y = prize_y  # Target Y position
+
+    def can_win(self) -> bool:
+        """"""Check if there exists any combination of A and B presses that wins the prize.""""""
+        # We'll check this during the solve process
+        return True
+
+    def solve(self) -> Optional[Tuple[int, int]]:
+        """"""Find the minimal token combination to win this machine's prize.
+
+        Returns:
+            Tuple of (total_tokens, a_presses, b_presses) or None if not possible
+        """"""
+        min_tokens = None
+        best_a = 0
+        best_b = 0
+
+        # As per problem statement, we can limit to 100 presses per button
+        for a_presses in range(101):
+            for b_presses in range(101):
+                x = a_presses * self.a_x + b_presses * self.b_x
+                y = a_presses * self.a_y + b_presses * self.b_y
+
+                if x == self.prize_x and y == self.prize_y:
+                    tokens = a_presses * 3 + b_presses * 1
+                    if min_tokens is None or tokens < min_tokens:
+                        min_tokens = tokens
+                        best_a = a_presses
+                        best_b = b_presses
+
+        if min_tokens is not None:
+            return (min_tokens, best_a, best_b)
+        return None
+
+def parse_input(input_file: str) -> List[ClawMachine]:
+    """"""Parse the puzzle input from file into a list of ClawMachine objects.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        List of ClawMachine objects
+    """"""
+    machines = []
+    with open(input_file, 'r') as f:
+        current_machine = {}
+
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+
+            if line.startswith('Button A:'):
+                # Extract A button movements
+                match = re.search(r'X\+(\d+), Y\+(\d+)', line)
+                if match:
+                    current_machine['a_x'] = int(match.group(1))
+                    current_machine['a_y'] = int(match.group(2))
+            elif line.startswith('Button B:'):
+                # Extract B button movements
+                match = re.search(r'X\+(\d+), Y\+(\d+)', line)
+                if match:
+                    current_machine['b_x'] = int(match.group(1))
+                    current_machine['b_y'] = int(match.group(2))
+            elif line.startswith('Prize:'):
+                # Extract prize location
+                match = re.search(r'X=(\d+), Y=(\d+)', line)
+                if match:
+                    current_machine['prize_x'] = int(match.group(1))
+                    current_machine['prize_y'] = int(match.group(2))
+
+                    # Create machine when we have all components
+                    if len(current_machine) == 6:
+                        machines.append(ClawMachine(
+                            current_machine['a_x'], current_machine['a_y'],
+                            current_machine['b_x'], current_machine['b_y'],
+                            current_machine['prize_x'], current_machine['prize_y']
+                        ))
+                    current_machine = {}
+
+    return machines
+
+def solve_part_one(machines: List[ClawMachine]) -> int:
+    """"""Solve part one of the puzzle - maximize prizes with minimal tokens.
+
+    Args:
+        machines: List of ClawMachine objects
+
+    Returns:
+        Minimal tokens to win all possible prizes
+    """"""
+    solutions = []
+
+    for machine in machines:
+        solution = machine.solve()
+        if solution is not None:
+            solutions.append(solution[0])  # Just the token count
+
+    # We need to select machines to maximize prizes while minimizing total tokens
+    # Since each machine can only give one prize, we just take all possible ones
+    return sum(solutions)
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    machines = parse_input(input_file)
+
+    # Solve part one
+    part_one_solution = solve_part_one(machines)
+    # ONLY PRINT THE RESULT, NO OTHER TEXT
+    print(part_one_solution)
+
+if __name__ == ""__main__"":
+    main()"
+13,system,deepseek-chat,True,413.48219299316406,"""""""
+Advent of Code: Claw Contraption
+Solution implementation for finding the minimum tokens to win prizes from claw machines.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+from typing import List, Dict, Tuple, Optional
+
+def parse_input(input_file: str) -> List[Dict[str, int]]:
+    """"""Parse the puzzle input from file into a list of machine configurations.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        List of dictionaries containing machine configurations
+    """"""
+    machines = []
+    with open(input_file, 'r') as f:
+        current_machine = {}
+        for line in f:
+            line = line.strip()
+            if not line:
+                if current_machine:
+                    machines.append(current_machine)
+                    current_machine = {}
+                continue
+
+            if line.startswith('Button A:'):
+                parts = line.split()
+                current_machine['A_x'] = int(parts[2][2:].rstrip(','))
+                current_machine['A_y'] = int(parts[3][2:].rstrip(','))
+            elif line.startswith('Button B:'):
+                parts = line.split()
+                current_machine['B_x'] = int(parts[2][2:].rstrip(','))
+                current_machine['B_y'] = int(parts[3][2:].rstrip(','))
+            elif line.startswith('Prize:'):
+                parts = line.split()
+                current_machine['prize_x'] = int(parts[1][2:].rstrip(','))
+                current_machine['prize_y'] = int(parts[2][2:].rstrip(','))
+
+        if current_machine:
+            machines.append(current_machine)
+
+    return machines
+
+def solve_machine(machine: Dict[str, int]) -> Optional[int]:
+    """"""Solve a single machine's configuration to find minimum token cost.
+
+    Args:
+        machine: Dictionary containing machine configuration
+
+    Returns:
+        Minimum token cost if solution exists, None otherwise
+    """"""
+    min_cost = None
+
+    # Iterate through all possible A presses (0-100)
+    for A in range(0, 101):
+        # Calculate required B for X equation
+        x_numerator = machine['prize_x'] - A * machine['A_x']
+        if machine['B_x'] == 0:
+            if x_numerator != 0:
+                continue
+            B_x = 0  # Any B would work for X equation (since B_x is 0)
+        else:
+            if x_numerator % machine['B_x'] != 0:
+                continue
+            B_x = x_numerator // machine['B_x']
+            if B_x < 0 or B_x > 100:
+                continue
+
+        # Calculate required B for Y equation
+        y_numerator = machine['prize_y'] - A * machine['A_y']
+        if machine['B_y'] == 0:
+            if y_numerator != 0:
+                continue
+            B_y = 0  # Any B would work for Y equation (since B_y is 0)
+        else:
+            if y_numerator % machine['B_y'] != 0:
+                continue
+            B_y = y_numerator // machine['B_y']
+            if B_y < 0 or B_y > 100:
+                continue
+
+        # Check if B matches in both equations
+        if (machine['B_x'] == 0 and machine['B_y'] == 0):
+            # Both B coefficients are zero - need to check prize positions
+            if (A * machine['A_x'] == machine['prize_x'] and
+                A * machine['A_y'] == machine['prize_y']):
+                cost = 3 * A
+                if min_cost is None or cost < min_cost:
+                    min_cost = cost
+        elif machine['B_x'] == 0:
+            # Only X equation doesn't depend on B
+            if B_y >= 0 and B_y <= 100:
+                cost = 3 * A + B_y
+                if min_cost is None or cost < min_cost:
+                    min_cost = cost
+        elif machine['B_y'] == 0:
+            # Only Y equation doesn't depend on B
+            if B_x >= 0 and B_x <= 100:
+                cost = 3 * A + B_x
+                if min_cost is None or cost < min_cost:
+                    min_cost = cost
+        else:
+            # Both equations depend on B
+            if B_x == B_y and B_x >= 0 and B_x <= 100:
+                cost = 3 * A + B_x
+                if min_cost is None or cost < min_cost:
+                    min_cost = cost
+
+    return min_cost
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    machines = parse_input(input_file)
+
+    # Solve for all machines
+    total_tokens = 0
+    for machine in machines:
+        cost = solve_machine(machine)
+        if cost is not None:
+            total_tokens += cost
+
+    # Print the result (only the number, no other text)
+    print(total_tokens)
+
+if __name__ == ""__main__"":
+    main()"
+14,single-model,deepseek-chat,True,51.91290211677551,"""""""
+Advent of Code Day 14: Restroom Redoubt
+Solution implementation for predicting robot positions after 100 seconds and calculating safety factor.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple, Dict
+import sys
+import re
+
+# Constants
+GRID_WIDTH = 101
+GRID_HEIGHT = 103
+SIMULATION_TIME = 100
+
+
+def parse_input(input_file: str) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
+    """"""Parse the puzzle input from file into list of robot positions and velocities.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        List of tuples containing (position, velocity) for each robot
+    """"""
+    robots = []
+    pattern = re.compile(r'p=(-?\d+),(-?\d+) v=(-?\d+),(-?\d+)')
+
+    with open(input_file, 'r') as f:
+        for line in f:
+            match = pattern.match(line.strip())
+            if match:
+                x, y, vx, vy = map(int, match.groups())
+                robots.append(((x, y), (vx, vy)))
+
+    return robots
+
+
+def simulate_robots(robots: List[Tuple[Tuple[int, int], Tuple[int, int]]], time: int) -> List[Tuple[int, int]]:
+    """"""Simulate robot movement for given time with wrapping around grid edges.
+
+    Args:
+        robots: List of robots with their initial positions and velocities
+        time: Number of seconds to simulate
+
+    Returns:
+        List of final positions for all robots
+    """"""
+    final_positions = []
+
+    for pos, vel in robots:
+        x, y = pos
+        vx, vy = vel
+
+        # Calculate new position with wrapping
+        new_x = (x + vx * time) % GRID_WIDTH
+        new_y = (y + vy * time) % GRID_HEIGHT
+
+        final_positions.append((new_x, new_y))
+
+    return final_positions
+
+
+def calculate_safety_factor(positions: List[Tuple[int, int]]) -> int:
+    """"""Calculate safety factor by counting robots in each quadrant and multiplying counts.
+
+    Args:
+        positions: List of robot positions after simulation
+
+    Returns:
+        Safety factor (product of robot counts in each quadrant)
+    """"""
+    quadrants = [0, 0, 0, 0]  # Q1, Q2, Q3, Q4
+
+    for x, y in positions:
+        # Skip robots exactly in the middle
+        if x == GRID_WIDTH // 2 or y == GRID_HEIGHT // 2:
+            continue
+
+        # Determine quadrant
+        if x > GRID_WIDTH // 2 and y < GRID_HEIGHT // 2:
+            quadrants[0] += 1  # Q1
+        elif x < GRID_WIDTH // 2 and y < GRID_HEIGHT // 2:
+            quadrants[1] += 1  # Q2
+        elif x < GRID_WIDTH // 2 and y > GRID_HEIGHT // 2:
+            quadrants[2] += 1  # Q3
+        elif x > GRID_WIDTH // 2 and y > GRID_HEIGHT // 2:
+            quadrants[3] += 1  # Q4
+
+    # Calculate safety factor
+    safety_factor = 1
+    for count in quadrants:
+        if count > 0:
+            safety_factor *= count
+
+    return safety_factor
+
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    robots = parse_input(input_file)
+
+    # Simulate robot movement for 100 seconds
+    final_positions = simulate_robots(robots, SIMULATION_TIME)
+
+    # Calculate safety factor
+    safety_factor = calculate_safety_factor(final_positions)
+
+    # Print result (only this line goes to STDOUT)
+    print(safety_factor)
+
+
+if __name__ == ""__main__"":
+    main()"
+14,system,deepseek-chat,True,300.0058171749115,"""""""
+Advent of Code: Day 14 - Restroom Redoubt
+Simulate robot movement for 100 seconds with teleportation and calculate safety factor.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+from typing import List, Dict, Tuple
+
+def parse_input(input_file: str) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
+    """"""Parse the puzzle input from file into robot data.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        List of tuples containing (position, velocity) for each robot
+    """"""
+    robots = []
+    with open(input_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+
+            # Split into position and velocity parts
+            p_part, v_part = line.split()
+
+            # Parse position (p=x,y)
+            p_str = p_part.split('=')[1]
+            x, y = map(int, p_str.split(','))
+
+            # Parse velocity (v=dx,dy)
+            v_str = v_part.split('=')[1]
+            dx, dy = map(int, v_str.split(','))
+
+            robots.append(((x, y), (dx, dy)))
+
+    return robots
+
+def simulate_movement(robots: List[Tuple[Tuple[int, int], Tuple[int, int]]],
+                     seconds: int, width: int, height: int) -> List[Tuple[int, int]]:
+    """"""Simulate robot movement for given seconds with teleportation.
+
+    Args:
+        robots: List of robots with (position, velocity)
+        seconds: Number of seconds to simulate
+        width: Grid width
+        height: Grid height
+
+    Returns:
+        List of final positions after simulation
+    """"""
+    final_positions = []
+
+    for (x, y), (dx, dy) in robots:
+        # Calculate new position with teleportation (wrapping)
+        new_x = (x + dx * seconds) % width
+        new_y = (y + dy * seconds) % height
+        final_positions.append((new_x, new_y))
+
+    return final_positions
+
+def count_quadrants(positions: List[Tuple[int, int]],
+                   width: int, height: int) -> Dict[str, int]:
+    """"""Count robots in each quadrant, excluding center lines.
+
+    Args:
+        positions: List of robot positions
+        width: Grid width
+        height: Grid height
+
+    Returns:
+        Dictionary with counts for each quadrant (""q1"" to ""q4"")
+    """"""
+    counts = {'q1': 0, 'q2': 0, 'q3': 0, 'q4': 0}
+    center_x = width // 2
+    center_y = height // 2
+
+    for x, y in positions:
+        # Skip robots on center lines
+        if x == center_x or y == center_y:
+            continue
+
+        # Determine quadrant
+        if x < center_x and y < center_y:
+            counts['q1'] += 1
+        elif x >= center_x and y < center_y:
+            counts['q2'] += 1
+        elif x < center_x and y >= center_y:
+            counts['q3'] += 1
+        else:
+            counts['q4'] += 1
+
+    return counts
+
+def calculate_safety_factor(quadrant_counts: Dict[str, int]) -> int:
+    """"""Calculate safety factor by multiplying quadrant counts.
+
+    Args:
+        quadrant_counts: Dictionary with counts for each quadrant
+
+    Returns:
+        Product of quadrant counts
+    """"""
+    # Multiply all non-zero counts
+    product = 1
+    for count in quadrant_counts.values():
+        if count > 0:
+            product *= count
+    return product
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Constants
+    GRID_WIDTH = 101
+    GRID_HEIGHT = 103
+    SIMULATION_SECONDS = 100
+
+    # Parse input
+    robots = parse_input(input_file)
+
+    # Simulate movement
+    final_positions = simulate_movement(robots, SIMULATION_SECONDS, GRID_WIDTH, GRID_HEIGHT)
+
+    # Count quadrants
+    quadrant_counts = count_quadrants(final_positions, GRID_WIDTH, GRID_HEIGHT)
+
+    # Calculate safety factor
+    safety_factor = calculate_safety_factor(quadrant_counts)
+
+    # Print result (only the number, no extra text)
+    print(safety_factor)
+
+if __name__ == ""__main__"":
+    main()"
+15,single-model,deepseek-chat,False,59.04913640022278,"""""""
+Advent of Code Day 15: Warehouse Woes
+Solution implementation for predicting robot movements and calculating box GPS coordinates.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple, Dict
+import sys
+
+def parse_input(input_file: str) -> Tuple[List[List[str]], str]:
+    """"""Parse the puzzle input from file into warehouse map and moves.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        Tuple containing:
+            - Warehouse map as 2D list
+            - Concatenated move sequence as string
+    """"""
+    with open(input_file, 'r') as f:
+        lines = [line.strip() for line in f.readlines()]
+
+    # Separate map and moves (moves start after first empty line)
+    empty_line_index = lines.index('') if '' in lines else len(lines)
+    map_lines = lines[:empty_line_index]
+    move_lines = lines[empty_line_index+1:] if empty_line_index+1 < len(lines) else []
+
+    # Convert map to 2D list
+    warehouse = [list(line) for line in map_lines]
+
+    # Concatenate all move lines into a single string
+    moves = ''.join(move_lines)
+
+    return warehouse, moves
+
+def find_robot(warehouse: List[List[str]]) -> Tuple[int, int]:
+    """"""Find the current position of the robot (@) in the warehouse.
+
+    Args:
+        warehouse: 2D list representing the warehouse map
+
+    Returns:
+        Tuple (row, col) of robot position
+    """"""
+    for i, row in enumerate(warehouse):
+        for j, cell in enumerate(row):
+            if cell == '@':
+                return (i, j)
+    raise ValueError(""Robot not found in warehouse"")
+
+def move_robot(warehouse: List[List[str]], moves: str) -> List[List[str]]:
+    """"""Simulate the robot's movements and box pushing.
+
+    Args:
+        warehouse: Initial warehouse map
+        moves: Sequence of moves to execute
+
+    Returns:
+        Updated warehouse map after all moves
+    """"""
+    # Directions: up, down, left, right
+    directions = {
+        '^': (-1, 0),
+        'v': (1, 0),
+        '<': (0, -1),
+        '>': (0, 1)
+    }
+
+    # Make a deep copy of the warehouse to modify
+    warehouse = [row.copy() for row in warehouse]
+
+    for move in moves:
+        if move not in directions:
+            continue  # skip invalid moves
+
+        # Find current robot position
+        robot_row, robot_col = find_robot(warehouse)
+        dr, dc = directions[move]
+        new_row, new_col = robot_row + dr, robot_col + dc
+
+        # Check if new position is within bounds
+        if not (0 <= new_row < len(warehouse) and 0 <= new_col < len(warehouse[0])):
+            continue
+
+        target_cell = warehouse[new_row][new_col]
+
+        if target_cell == '.':  # Empty space, just move
+            warehouse[robot_row][robot_col] = '.'
+            warehouse[new_row][new_col] = '@'
+        elif target_cell == 'O':  # Box to push
+            # Check space beyond the box
+            box_new_row, box_new_col = new_row + dr, new_col + dc
+
+            # Check if box can be pushed
+            if (0 <= box_new_row < len(warehouse) and
+                0 <= box_new_col < len(warehouse[0]) and
+                warehouse[box_new_row][box_new_col] == '.'):
+
+                # Move box
+                warehouse[box_new_row][box_new_col] = 'O'
+                # Move robot to box's previous position
+                warehouse[new_row][new_col] = '@'
+                # Clear robot's previous position
+                warehouse[robot_row][robot_col] = '.'
+        # Else (wall or out of bounds), do nothing
+
+    return warehouse
+
+def calculate_gps_sum(warehouse: List[List[str]]) -> int:
+    """"""Calculate the sum of GPS coordinates for all boxes.
+
+    Args:
+        warehouse: Final warehouse state
+
+    Returns:
+        Sum of all boxes' GPS coordinates (100*row + col)
+    """"""
+    total = 0
+    for i, row in enumerate(warehouse):
+        for j, cell in enumerate(row):
+            if cell == 'O':
+                total += 100 * i + j
+    return total
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    warehouse, moves = parse_input(input_file)
+
+    # Simulate robot movements
+    final_warehouse = move_robot(warehouse, moves)
+
+    # Calculate and print GPS sum
+    gps_sum = calculate_gps_sum(final_warehouse)
+    print(gps_sum)
+
+if __name__ == ""__main__"":
+    main()"
+15,system,deepseek-chat,False,915.8553440570831,
+16,single-model,deepseek-chat,True,50.236079692840576,"""""""
+Advent of Code Day 16: Reindeer Maze
+Solution using Dijkstra's algorithm with priority queue to find the lowest score path.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+from typing import List, Tuple, Dict
+from heapq import heappop, heappush
+
+
+def parse_input(input_file: str) -> Tuple[List[List[str]], Tuple[int, int], Tuple[int, int]]:
+    """"""Parse the maze from input file.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        Tuple containing:
+            - 2D list representing the maze
+            - Coordinates of start position (S)
+            - Coordinates of end position (E)
+    """"""
+    maze = []
+    start = None
+    end = None
+    with open(input_file, 'r') as f:
+        for i, line in enumerate(f):
+            row = list(line.strip())
+            maze.append(row)
+            if 'S' in row:
+                start = (i, row.index('S'))
+            if 'E' in row:
+                end = (i, row.index('E'))
+    return maze, start, end
+
+
+def solve_maze(maze: List[List[str]], start: Tuple[int, int], end: Tuple[int, int]) -> int:
+    """"""Find the lowest score path through the maze using Dijkstra's algorithm.
+
+    Args:
+        maze: 2D list representing the maze
+        start: Starting coordinates (row, col)
+        end: Ending coordinates (row, col)
+
+    Returns:
+        The lowest possible score to reach the end
+    """"""
+    # Directions: north, east, south, west (row, col)
+    directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+
+    # Priority queue: (total_score, row, col, current_direction)
+    # Start facing east (direction index 1)
+    heap = [(0, start[0], start[1], 1)]
+
+    # Visited dictionary: {(row, col, direction): best_score}
+    visited = {}
+
+    while heap:
+        score, row, col, dir_idx = heappop(heap)
+
+        # Check if we reached the end
+        if (row, col) == end:
+            return score
+
+        # Skip if we've been here with a better score
+        if (row, col, dir_idx) in visited and visited[(row, col, dir_idx)] <= score:
+            continue
+
+        visited[(row, col, dir_idx)] = score
+
+        # Current direction vector
+        dr, dc = directions[dir_idx]
+
+        # Option 1: Move forward (costs 1 point)
+        new_row, new_col = row + dr, col + dc
+        if 0 <= new_row < len(maze) and 0 <= new_col < len(maze[0]) and maze[new_row][new_col] != '#':
+            heappush(heap, (score + 1, new_row, new_col, dir_idx))
+
+        # Option 2: Turn clockwise (right) 90 degrees (costs 1000 points)
+        new_dir = (dir_idx + 1) % 4
+        heappush(heap, (score + 1000, row, col, new_dir))
+
+        # Option 3: Turn counter-clockwise (left) 90 degrees (costs 1000 points)
+        new_dir = (dir_idx - 1) % 4
+        heappush(heap, (score + 1000, row, col, new_dir))
+
+    # If we exhaust all possibilities without finding the end
+    return -1
+
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    maze, start, end = parse_input(input_file)
+
+    # Solve the maze
+    lowest_score = solve_maze(maze, start, end)
+
+    # ONLY PRINT THE RESULT, NO OTHER TEXT
+    print(lowest_score)
+
+
+if __name__ == ""__main__"":
+    main()"
+16,system,deepseek-chat,True,365.8185439109802,"""""""
+Advent of Code: Reindeer Maze
+Solution using Dijkstra's algorithm with state tracking for position and direction.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+import heapq
+from typing import List, Tuple, Dict, Set
+
+# Directions: East, South, West, North (matching turning order)
+DIRECTIONS = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+DIRECTION_NAMES = ['East', 'South', 'West', 'North']
+
+def parse_input(input_file: str) -> Tuple[List[List[str]], Tuple[int, int], Tuple[int, int]]:
+    """"""Parse the maze input file.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        Tuple containing:
+        - The maze grid
+        - Start position (x, y)
+        - End position (x, y)
+    """"""
+    with open(input_file, 'r') as f:
+        grid = [list(line.strip()) for line in f.readlines()]
+
+    start_pos = None
+    end_pos = None
+
+    for y in range(len(grid)):
+        for x in range(len(grid[y])):
+            if grid[y][x] == 'S':
+                start_pos = (x, y)
+            elif grid[y][x] == 'E':
+                end_pos = (x, y)
+
+    return grid, start_pos, end_pos
+
+def solve_maze(grid: List[List[str]], start: Tuple[int, int], end: Tuple[int, int]) -> int:
+    """"""Find the lowest score to navigate from start to end in the maze.
+
+    Args:
+        grid: The maze grid
+        start: Starting position (x, y)
+        end: Target position (x, y)
+
+    Returns:
+        The lowest possible score to reach the end
+    """"""
+    if not start or not end:
+        return -1
+
+    # Priority queue: (total_score, x, y, direction_index)
+    heap = []
+    heapq.heappush(heap, (0, start[0], start[1], 0))  # Start facing East (index 0)
+
+    # Visited dictionary: {(x, y, direction): min_score}
+    visited = {}
+
+    while heap:
+        score, x, y, dir_idx = heapq.heappop(heap)
+
+        # Check if we've reached the end
+        if (x, y) == end:
+            return score
+
+        # Skip if we've been here with a better or equal score
+        if (x, y, dir_idx) in visited and visited[(x, y, dir_idx)] <= score:
+            continue
+
+        visited[(x, y, dir_idx)] = score
+
+        # Generate possible moves
+        # 1. Move forward (cost +1)
+        dx, dy = DIRECTIONS[dir_idx]
+        new_x, new_y = x + dx, y + dy
+        if 0 <= new_y < len(grid) and 0 <= new_x < len(grid[new_y]) and grid[new_y][new_x] != '#':
+            heapq.heappush(heap, (score + 1, new_x, new_y, dir_idx))
+
+        # 2. Turn left (90 deg counter-clockwise, cost +1000)
+        new_dir = (dir_idx - 1) % 4
+        heapq.heappush(heap, (score + 1000, x, y, new_dir))
+
+        # 3. Turn right (90 deg clockwise, cost +1000)
+        new_dir = (dir_idx + 1) % 4
+        heapq.heappush(heap, (score + 1000, x, y, new_dir))
+
+    return -1  # No path found
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+    grid, start_pos, end_pos = parse_input(input_file)
+
+    if not start_pos or not end_pos:
+        print(""Invalid input: Start or end position not found"")
+        return
+
+    lowest_score = solve_maze(grid, start_pos, end_pos)
+    print(lowest_score)
+
+if __name__ == ""__main__"":
+    main()"
+17,single-model,deepseek-chat,True,59.458152770996094,"""""""
+Advent of Code Day 17: Chronospatial Computer
+Solution implementation for the 3-bit computer simulation.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple, Optional
+import sys
+
+class ChronospatialComputer:
+    """"""Simulates the 3-bit chronospatial computer.""""""
+
+    def __init__(self, program: List[int], a: int = 0, b: int = 0, c: int = 0):
+        """"""Initialize computer with program and register values.""""""
+        self.program = program
+        self.registers = {'A': a, 'B': b, 'C': c}
+        self.ip = 0  # instruction pointer
+        self.output = []
+
+    def get_operand_value(self, operand: int, is_combo: bool) -> int:
+        """"""Get the value of an operand based on its type.""""""
+        if not is_combo:
+            return operand
+
+        # Handle combo operands
+        if 0 <= operand <= 3:
+            return operand
+        elif operand == 4:
+            return self.registers['A']
+        elif operand == 5:
+            return self.registers['B']
+        elif operand == 6:
+            return self.registers['C']
+        else:
+            raise ValueError(f""Invalid combo operand: {operand}"")
+
+    def execute_instruction(self, opcode: int, operand: int) -> bool:
+        """"""Execute a single instruction. Returns False if program should halt.""""""
+        # Get operand value based on instruction type
+        is_combo = opcode in {0, 2, 5, 6, 7}
+        operand_value = self.get_operand_value(operand, is_combo)
+
+        # Execute the instruction
+        if opcode == 0:  # adv
+            denominator = 2 ** operand_value
+            self.registers['A'] = self.registers['A'] // denominator
+        elif opcode == 1:  # bxl
+            self.registers['B'] ^= operand
+        elif opcode == 2:  # bst
+            self.registers['B'] = operand_value % 8
+        elif opcode == 3:  # jnz
+            if self.registers['A'] != 0:
+                self.ip = operand
+                return True  # Skip normal IP increment
+        elif opcode == 4:  # bxc
+            self.registers['B'] ^= self.registers['C']
+        elif opcode == 5:  # out
+            self.output.append(str(operand_value % 8))
+        elif opcode == 6:  # bdv
+            denominator = 2 ** operand_value
+            self.registers['B'] = self.registers['A'] // denominator
+        elif opcode == 7:  # cdv
+            denominator = 2 ** operand_value
+            self.registers['C'] = self.registers['A'] // denominator
+        else:
+            raise ValueError(f""Invalid opcode: {opcode}"")
+
+        return False
+
+    def run(self) -> str:
+        """"""Run the program until it halts. Returns the output string.""""""
+        while self.ip < len(self.program):
+            opcode = self.program[self.ip]
+
+            # Check if we can read operand
+            if self.ip + 1 >= len(self.program):
+                break
+
+            operand = self.program[self.ip + 1]
+
+            # Execute instruction
+            skip_increment = self.execute_instruction(opcode, operand)
+
+            # Update instruction pointer
+            if not skip_increment:
+                self.ip += 2
+
+        return "","".join(self.output)
+
+def parse_input(input_file: str) -> Tuple[List[int], int, int, int]:
+    """"""Parse the input file into program and initial register values.""""""
+    with open(input_file, 'r') as f:
+        lines = [line.strip() for line in f.readlines() if line.strip()]
+
+    # Initialize default values
+    a, b, c = 0, 0, 0
+    program = []
+
+    for line in lines:
+        if line.startswith(""Register A:""):
+            a = int(line.split("":"")[1].strip())
+        elif line.startswith(""Register B:""):
+            b = int(line.split("":"")[1].strip())
+        elif line.startswith(""Register C:""):
+            c = int(line.split("":"")[1].strip())
+        elif line.startswith(""Program:""):
+            program_str = line.split("":"")[1].strip()
+            program = [int(x.strip()) for x in program_str.split("","")]
+
+    return program, a, b, c
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        return
+
+    input_file = sys.argv[1]
+
+    try:
+        program, a, b, c = parse_input(input_file)
+        computer = ChronospatialComputer(program, a, b, c)
+        output = computer.run()
+        print(output)
+    except Exception as e:
+        print(f""Error: {e}"", file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == ""__main__"":
+    main()"
+17,system,deepseek-chat,True,337.32727909088135,"""""""
+Advent of Code: Chronospatial Computer
+Simulate a 3-bit computer with registers A, B, C and collect output from 'out' instructions.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+from typing import List, Tuple
+
+def parse_input(input_file: str) -> Tuple[int, int, int, List[int]]:
+    """"""Parse the input file to get initial register values and program.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        Tuple of (A, B, C, program) where program is a list of integers
+    """"""
+    with open(input_file, 'r') as f:
+        lines = f.readlines()
+
+    # Initialize registers
+    a = b = c = 0
+    program = []
+
+    for line in lines:
+        line = line.strip()
+        if line.startswith('Register A:'):
+            a = int(line.split(':')[1].strip())
+        elif line.startswith('Register B:'):
+            b = int(line.split(':')[1].strip())
+        elif line.startswith('Register C:'):
+            c = int(line.split(':')[1].strip())
+        elif line.startswith('Program:'):
+            program_str = line.split(':')[1].strip()
+            program = list(map(int, program_str.split(',')))
+
+    return a, b, c, program
+
+def get_operand_value(operand: int, a: int, b: int, c: int) -> int:
+    """"""Get the value of an operand (literal or combo).
+
+    Args:
+        operand: The operand value (0-7)
+        a, b, c: Current register values
+
+    Returns:
+        The computed operand value
+    """"""
+    if operand <= 3:  # Literal values 0-3
+        return operand
+    elif operand == 4:  # Register A
+        return a
+    elif operand == 5:  # Register B
+        return b
+    elif operand == 6:  # Register C
+        return c
+    else:  # operand == 7 (reserved)
+        raise ValueError(""Invalid combo operand 7"")
+
+def execute_program(a: int, b: int, c: int, program: List[int]) -> str:
+    """"""Execute the program and collect outputs from 'out' instructions.
+
+    Args:
+        a, b, c: Initial register values
+        program: List of integers representing the program
+
+    Returns:
+        Comma-separated string of output values
+    """"""
+    ip = 0  # instruction pointer
+    outputs = []
+
+    while ip < len(program):
+        opcode = program[ip]
+        if ip + 1 >= len(program):
+            break  # missing operand
+
+        operand = program[ip + 1]
+        new_ip = ip + 2  # default next instruction
+
+        try:
+            if opcode == 0:  # adv
+                # Get denominator as 2^operand_value
+                operand_value = get_operand_value(operand, a, b, c)
+                denominator = 2 ** operand_value
+                a = a // denominator
+            elif opcode == 1:  # bxl
+                # Bitwise XOR B with literal operand
+                b ^= operand
+            elif opcode == 2:  # bst
+                # Store (combo operand % 8) in B
+                operand_value = get_operand_value(operand, a, b, c)
+                b = operand_value % 8
+            elif opcode == 3:  # jnz
+                # Jump if A != 0
+                if a != 0:
+                    new_ip = operand
+            elif opcode == 4:  # bxc
+                # Bitwise XOR B and C, ignore operand
+                b ^= c
+            elif opcode == 5:  # out
+                # Output (combo operand % 8)
+                operand_value = get_operand_value(operand, a, b, c)
+                outputs.append(str(operand_value % 8))
+            elif opcode == 6:  # bdv
+                # Like adv but store in B
+                operand_value = get_operand_value(operand, a, b, c)
+                denominator = 2 ** operand_value
+                b = a // denominator
+            elif opcode == 7:  # cdv
+                # Like adv but store in C
+                operand_value = get_operand_value(operand, a, b, c)
+                denominator = 2 ** operand_value
+                c = a // denominator
+            else:
+                raise ValueError(f""Invalid opcode {opcode}"")
+
+            ip = new_ip
+
+        except ValueError as e:
+            print(f""Error executing instruction at IP {ip}: {e}"", file=sys.stderr)
+            break
+
+    return "","".join(outputs)
+
+def main():
+    """"""Main function to run the program.""""""
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        sys.exit(1)
+
+    input_file = sys.argv[1]
+
+    # Parse input and execute program
+    a, b, c, program = parse_input(input_file)
+    output = execute_program(a, b, c, program)
+
+    # Print the final output (only this should go to stdout)
+    print(output)
+
+if __name__ == ""__main__"":
+    main()"
+18,single-model,deepseek-chat,True,42.241856813430786,"""""""
+Advent of Code Day 18: RAM Run
+Solution implementation for finding the shortest path in a corrupted memory grid.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple, Set, Deque
+import sys
+from collections import deque
+
+def parse_input(input_file: str) -> List[Tuple[int, int]]:
+    """"""Parse the puzzle input from file into a list of coordinates.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        List of (x, y) coordinates representing falling bytes
+    """"""
+    coordinates = []
+    with open(input_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                x, y = map(int, line.split(','))
+                coordinates.append((x, y))
+    return coordinates
+
+def simulate_corruption(coordinates: List[Tuple[int, int]], steps: int = 1024) -> Set[Tuple[int, int]]:
+    """"""Simulate the corruption process and return the set of corrupted cells.
+
+    Args:
+        coordinates: List of incoming byte positions
+        steps: Number of bytes to simulate (default 1024)
+
+    Returns:
+        Set of corrupted (x, y) coordinates
+    """"""
+    return set(coordinates[:steps])
+
+def find_shortest_path(corrupted: Set[Tuple[int, int]], grid_size: int = 70) -> int:
+    """"""Find the shortest path from (0,0) to (70,70) avoiding corrupted cells.
+
+    Args:
+        corrupted: Set of corrupted coordinates
+        grid_size: Size of the grid (default 70)
+
+    Returns:
+        Minimum number of steps to reach the exit, or -1 if unreachable
+    """"""
+    # Directions: up, down, left, right
+    directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+
+    # BFS initialization
+    queue: Deque[Tuple[int, int, int]] = deque()
+    queue.append((0, 0, 0))
+    visited: Set[Tuple[int, int]] = set()
+    visited.add((0, 0))
+
+    while queue:
+        x, y, steps = queue.popleft()
+
+        # Check if we've reached the destination
+        if x == grid_size and y == grid_size:
+            return steps
+
+        # Explore all possible directions
+        for dx, dy in directions:
+            nx, ny = x + dx, y + dy
+
+            # Check boundaries and if the cell is corrupted or visited
+            if 0 <= nx <= grid_size and 0 <= ny <= grid_size:
+                if (nx, ny) not in corrupted and (nx, ny) not in visited:
+                    visited.add((nx, ny))
+                    queue.append((nx, ny, steps + 1))
+
+    # If we exhaust the queue without finding the destination
+    return -1
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    coordinates = parse_input(input_file)
+
+    # Simulate corruption (first 1024 bytes)
+    corrupted = simulate_corruption(coordinates)
+
+    # Find shortest path
+    steps = find_shortest_path(corrupted)
+
+    # ONLY PRINT THE RESULT, NO OTHER TEXT
+    print(steps)
+
+if __name__ == ""__main__"":
+    main()"
+18,system,deepseek-chat,True,311.1236114501953,"""""""
+Advent of Code: RAM Run - Simulate falling bytes and find shortest path
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple, Set
+from collections import deque
+import sys
+
+def parse_input(input_file: str) -> List[Tuple[int, int]]:
+    """"""Parse the input file into a list of coordinate tuples.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        List of (x, y) coordinate tuples
+    """"""
+    coordinates = []
+    with open(input_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                x, y = map(int, line.split(','))
+                coordinates.append((x, y))
+    return coordinates
+
+def initialize_grid() -> List[List[str]]:
+    """"""Initialize a 71x71 grid with all cells marked as safe ('.').
+
+    Returns:
+        2D list representing the grid
+    """"""
+    return [['.' for _ in range(71)] for _ in range(71)]
+
+def mark_corrupted(grid: List[List[str]], coordinates: List[Tuple[int, int]]) -> None:
+    """"""Mark the given coordinates as corrupted ('#') on the grid.
+
+    Args:
+        grid: The 71x71 grid
+        coordinates: List of (x, y) coordinates to mark as corrupted
+    """"""
+    for x, y in coordinates:
+        grid[x][y] = '#'
+
+def find_shortest_path(grid: List[List[str]]) -> int:
+    """"""Find the shortest path from (0,0) to (70,70) using BFS.
+
+    Args:
+        grid: The 71x71 grid with corrupted cells marked
+
+    Returns:
+        Minimum number of steps or -1 if no path exists
+    """"""
+    # Directions: up, down, left, right
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    # Initialize queue with starting position (x, y, steps)
+    queue = deque([(0, 0, 0)])
+    visited = set([(0, 0)])
+
+    while queue:
+        x, y, steps = queue.popleft()
+
+        # Check if we've reached the destination
+        if x == 70 and y == 70:
+            return steps
+
+        # Explore all adjacent cells
+        for dx, dy in directions:
+            nx, ny = x + dx, y + dy
+
+            # Check boundaries and if cell is safe and not visited
+            if 0 <= nx < 71 and 0 <= ny < 71:
+                if grid[nx][ny] == '.' and (nx, ny) not in visited:
+                    visited.add((nx, ny))
+                    queue.append((nx, ny, steps + 1))
+
+    # If we exhaust the queue without finding the destination
+    return -1
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input (first 1024 coordinates)
+    coordinates = parse_input(input_file)[:1024]
+
+    # Initialize and mark corrupted cells
+    grid = initialize_grid()
+    mark_corrupted(grid, coordinates)
+
+    # Find shortest path
+    steps = find_shortest_path(grid)
+
+    # Print result (only the number)
+    print(steps)
+
+if __name__ == ""__main__"":
+    main()"
+19,single-model,deepseek-chat,False,33.41338348388672,"""""""
+Advent of Code Day 19: Linen Layout
+Solution implementation for determining which towel designs can be made from available patterns.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Set, Dict, Optional
+import sys
+
+
+def parse_input(input_file: str) -> Tuple[Set[str], List[str]]:
+    """"""Parse the puzzle input from file into available patterns and desired designs.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        Tuple containing (set of available patterns, list of desired designs)
+    """"""
+    with open(input_file, 'r') as f:
+        content = f.read().split('\n\n')
+
+        # First part is comma-separated patterns
+        patterns = set(p.strip() for p in content[0].split(','))
+
+        # Remaining lines are designs (ignore empty lines)
+        designs = [line.strip() for line in content[1].split('\n') if line.strip()]
+
+    return patterns, designs
+
+
+def is_possible(design: str, patterns: Set[str], memo: Dict[str, bool]] = None) -> bool:
+    """"""Check if a design can be made from the available patterns using memoization.
+
+    Args:
+        design: The design string to check
+        patterns: Set of available patterns
+        memo: Dictionary for memoization (stores already computed results)
+
+    Returns:
+        True if design can be made, False otherwise
+    """"""
+    if memo is None:
+        memo = {}
+
+    if design in memo:
+        return memo[design]
+
+    # Base case: empty string is always possible (using zero towels)
+    if not design:
+        return True
+
+    # Try all possible patterns that match the start of the design
+    for pattern in patterns:
+        if design.startswith(pattern):
+            remaining = design[len(pattern):]
+            if is_possible(remaining, patterns, memo):
+                memo[design] = True
+                return True
+
+    memo[design] = False
+    return False
+
+
+def count_possible_designs(patterns: Set[str], designs: List[str]) -> int:
+    """"""Count how many designs can be made from the available patterns.
+
+    Args:
+        patterns: Set of available patterns
+        designs: List of desired designs
+
+    Returns:
+        Number of possible designs
+    """"""
+    count = 0
+    for design in designs:
+        if is_possible(design, patterns):
+            count += 1
+    return count
+
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    patterns, designs = parse_input(input_file)
+
+    # Count possible designs
+    result = count_possible_designs(patterns, designs)
+
+    # ONLY PRINT THE RESULT, NO OTHER TEXT
+    print(result)
+
+
+if __name__ == ""__main__"":
+    main()"
+19,system,deepseek-chat,True,240.25450778007507,"""""""
+Advent of Code: Linen Layout
+Solution implementation using dynamic programming to match towel patterns to designs.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+from typing import List, Set
+
+def parse_input(input_file: str) -> tuple[Set[str], List[str]]:
+    """"""Parse the puzzle input from file into available patterns and desired designs.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        tuple: (set of towel patterns, list of designs)
+    """"""
+    with open(input_file, 'r') as f:
+        content = f.read().split('\n\n')
+
+    # First part is comma-separated towel patterns
+    patterns = set(p.strip() for p in content[0].split(','))
+
+    # Remaining lines are designs (filter out empty lines)
+    designs = [line.strip() for line in content[1].split('\n') if line.strip()]
+
+    return patterns, designs
+
+def can_form_design(design: str, patterns: Set[str]) -> bool:
+    """"""Check if a design can be formed by concatenating towel patterns.
+
+    Args:
+        design: The design string to check
+        patterns: Set of available towel patterns
+
+    Returns:
+        bool: True if design can be formed, False otherwise
+    """"""
+    n = len(design)
+    dp = [False] * (n + 1)
+    dp[0] = True  # Empty string can always be formed
+
+    for i in range(n + 1):
+        if dp[i]:
+            for pattern in patterns:
+                pattern_len = len(pattern)
+                if i + pattern_len <= n and design[i:i+pattern_len] == pattern:
+                    dp[i + pattern_len] = True
+
+    return dp[n]
+
+def count_possible_designs(patterns: Set[str], designs: List[str]) -> int:
+    """"""Count how many designs can be formed with the given patterns.
+
+    Args:
+        patterns: Set of available towel patterns
+        designs: List of designs to check
+
+    Returns:
+        int: Count of feasible designs
+    """"""
+    count = 0
+    for design in designs:
+        if can_form_design(design, patterns):
+            count += 1
+    return count
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    patterns, designs = parse_input(input_file)
+
+    # Count feasible designs
+    result = count_possible_designs(patterns, designs)
+
+    # ONLY PRINT THE RESULT, NO OTHER TEXT
+    print(result)
+
+if __name__ == ""__main__"":
+    main()"
+20,single-model,deepseek-chat,False,58.4569673538208,"""""""
+Advent of Code Day 20: Race Condition
+Solution implementation for finding optimal cheats in a racetrack.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple, Dict, Set
+import sys
+from collections import deque
+
+def parse_input(input_file: str) -> Tuple[List[List[str]], Tuple[int, int], Tuple[int, int]]:
+    """"""Parse the puzzle input from file into a grid and find start/end positions.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        Tuple containing:
+            - The grid as a list of lists
+            - Start position (row, col)
+            - End position (row, col)
+    """"""
+    grid = []
+    start = None
+    end = None
+    with open(input_file, 'r') as f:
+        for row, line in enumerate(f):
+            line = line.strip()
+            grid.append(list(line))
+            if 'S' in line:
+                start = (row, line.index('S'))
+            if 'E' in line:
+                end = (row, line.index('E'))
+    return grid, start, end
+
+def bfs(grid: List[List[str]], start: Tuple[int, int], end: Tuple[int, int],
+        can_cheat: bool = False) -> Dict[Tuple[int, int], int]:
+    """"""Perform BFS to find shortest paths from start to all reachable positions.
+
+    Args:
+        grid: The racetrack grid
+        start: Starting position (row, col)
+        end: End position (row, col)
+        can_cheat: Whether cheating is allowed (pass through walls)
+
+    Returns:
+        Dictionary mapping positions to their shortest distance from start
+    """"""
+    rows = len(grid)
+    cols = len(grid[0]) if rows > 0 else 0
+
+    distances = {start: 0}
+    queue = deque([start])
+
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    while queue:
+        current = queue.popleft()
+
+        for dr, dc in directions:
+            nr, nc = current[0] + dr, current[1] + dc
+
+            if 0 <= nr < rows and 0 <= nc < cols:
+                if (nr, nc) in distances:
+                    continue
+
+                if grid[nr][nc] == '#' and not can_cheat:
+                    continue
+
+                distances[(nr, nc)] = distances[current] + 1
+                queue.append((nr, nc))
+
+                if (nr, nc) == end:
+                    return distances
+
+    return distances
+
+def find_cheats(grid: List[List[str]], start: Tuple[int, int], end: Tuple[int, int]) -> Dict[int, int]:
+    """"""Find all possible cheats and how much time they save.
+
+    Args:
+        grid: The racetrack grid
+        start: Starting position (row, col)
+        end: End position (row, col)
+
+    Returns:
+        Dictionary mapping time saved to count of cheats that save that much time
+    """"""
+    # First find normal shortest path without cheating
+    normal_distances = bfs(grid, start, end)
+    normal_time = normal_distances.get(end, float('inf'))
+
+    # Find all positions reachable in 1 step from track (potential cheat starts)
+    potential_starts = set()
+    rows = len(grid)
+    cols = len(grid[0]) if rows > 0 else 0
+
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] == '#':
+                for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                    nr, nc = r + dr, c + dc
+                    if 0 <= nr < rows and 0 <= nc < cols and grid[nr][nc] != '#':
+                        potential_starts.add((nr, nc))
+
+    # For each potential start, find positions reachable in 2 steps (cheat ends)
+    cheat_savings = defaultdict(int)
+
+    for start_pos in potential_starts:
+        # Distance from original start to this cheat start
+        dist_to_cheat = normal_distances.get(start_pos, float('inf'))
+        if dist_to_cheat == float('inf'):
+            continue
+
+        # Perform BFS allowing cheating for 2 steps
+        cheat_distances = bfs(grid, start_pos, end, can_cheat=True)
+
+        for end_pos in cheat_distances:
+            if cheat_distances[end_pos] > 2:
+                continue
+
+            # Distance from cheat end to actual end (without cheating)
+            dist_from_cheat = bfs(grid, end_pos, end).get(end, float('inf'))
+
+            if dist_from_cheat == float('inf'):
+                continue
+
+            total_time = dist_to_cheat + cheat_distances[end_pos] + dist_from_cheat
+            time_saved = normal_time - total_time
+
+            if time_saved > 0:
+                cheat_savings[time_saved] += 1
+
+    return cheat_savings
+
+def solve_part_one(parsed_data: Tuple[List[List[str]], Tuple[int, int], Tuple[int, int]]) -> int:
+    """"""Solve part one of the puzzle - count cheats saving at least 100 picoseconds.
+
+    Args:
+        parsed_data: Tuple containing grid, start, and end positions
+
+    Returns:
+        Number of cheats saving at least 100 picoseconds
+    """"""
+    grid, start, end = parsed_data
+    cheat_savings = find_cheats(grid, start, end)
+
+    count = 0
+    for time_saved in cheat_savings:
+        if time_saved >= 100:
+            count += cheat_savings[time_saved]
+
+    return count
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    parsed_data = parse_input(input_file)
+
+    # Solve part one
+    part_one_solution = solve_part_one(parsed_data)
+    print(part_one_solution)
+
+if __name__ == ""__main__"":
+    main()"
+20,system,deepseek-chat,False,868.9908244609833,
+21,single-model,deepseek-chat,False,66.42346835136414,"""""""
+Advent of Code Day 21: Keypad Conundrum
+Solution implementation for finding the shortest button press sequences.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Dict, Tuple, Set, Optional
+import sys
+from collections import deque
+
+# Define keypad layouts
+NUMERIC_KEYPAD = {
+    (0, 0): '7', (0, 1): '8', (0, 2): '9',
+    (1, 0): '4', (1, 1): '5', (1, 2): '6',
+    (2, 0): '1', (2, 1): '2', (2, 2): '3',
+    (3, 1): '0', (3, 2): 'A'
+}
+
+DIRECTIONAL_KEYPAD = {
+    (0, 1): '^', (0, 2): 'A',
+    (1, 0): '<', (1, 1): 'v', (1, 2): '>'
+}
+
+# Movement directions (row, col)
+DIRECTIONS = {
+    '^': (-1, 0),
+    'v': (1, 0),
+    '<': (0, -1),
+    '>': (0, 1)
+}
+
+def parse_input(input_file: str) -> List[str]:
+    """"""Parse the puzzle input from file into a list of codes.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        List of codes to be entered on the numeric keypad
+    """"""
+    with open(input_file, 'r') as f:
+        return [line.strip() for line in f.readlines()]
+
+def find_button_position(keypad: Dict[Tuple[int, int], str], target: str) -> Tuple[int, int]:
+    """"""Find the position of a button on a keypad.
+
+    Args:
+        keypad: Dictionary representing the keypad layout
+        target: Button to find
+
+    Returns:
+        Position (row, col) of the button
+    """"""
+    for pos, char in keypad.items():
+        if char == target:
+            return pos
+    raise ValueError(f""Button {target} not found on keypad"")
+
+def is_valid_position(keypad: Dict[Tuple[int, int], str], pos: Tuple[int, int]) -> bool:
+    """"""Check if a position is valid on a keypad (has a button).
+
+    Args:
+        keypad: Dictionary representing the keypad layout
+        pos: Position to check
+
+    Returns:
+        True if position is valid, False otherwise
+    """"""
+    return pos in keypad
+
+def get_shortest_path(keypad: Dict[Tuple[int, int], str],
+                      start_pos: Tuple[int, int],
+                      target: str) -> str:
+    """"""Find the shortest sequence of moves to reach a target button.
+
+    Args:
+        keypad: Dictionary representing the keypad layout
+        start_pos: Starting position (row, col)
+        target: Target button to reach
+
+    Returns:
+        Shortest sequence of moves (e.g., ""^<A"")
+    """"""
+    target_pos = find_button_position(keypad, target)
+
+    # BFS queue: (position, path)
+    queue = deque([(start_pos, """")])
+    visited = set([start_pos])
+
+    while queue:
+        pos, path = queue.popleft()
+
+        if pos == target_pos:
+            return path + 'A'
+
+        # Try all possible moves
+        for move, (dr, dc) in DIRECTIONS.items():
+            new_pos = (pos[0] + dr, pos[1] + dc)
+            if is_valid_position(keypad, new_pos) and new_pos not in visited:
+                visited.add(new_pos)
+                queue.append((new_pos, path + move))
+
+    raise ValueError(f""No path found from {start_pos} to {target}"")
+
+def solve_code_sequence(code: str) -> int:
+    """"""Solve for the shortest sequence of button presses for a given code.
+
+    Args:
+        code: The code to be entered on the numeric keypad
+
+    Returns:
+        Length of the shortest sequence of button presses
+    """"""
+    # Robot 3 (numeric keypad)
+    robot3_pos = find_button_position(NUMERIC_KEYPAD, 'A')
+    robot3_sequence = """"
+
+    for char in code:
+        path = get_shortest_path(NUMERIC_KEYPAD, robot3_pos, char)
+        robot3_sequence += path
+        robot3_pos = find_button_position(NUMERIC_KEYPAD, char)
+
+    # Robot 2 (directional keypad controlling robot 3)
+    robot2_pos = find_button_position(DIRECTIONAL_KEYPAD, 'A')
+    robot2_sequence = """"
+
+    for char in robot3_sequence:
+        path = get_shortest_path(DIRECTIONAL_KEYPAD, robot2_pos, char)
+        robot2_sequence += path
+        robot2_pos = find_button_position(DIRECTIONAL_KEYPAD, char)
+
+    # Robot 1 (directional keypad controlling robot 2)
+    robot1_pos = find_button_position(DIRECTIONAL_KEYPAD, 'A')
+    robot1_sequence = """"
+
+    for char in robot2_sequence:
+        path = get_shortest_path(DIRECTIONAL_KEYPAD, robot1_pos, char)
+        robot1_sequence += path
+        robot1_pos = find_button_position(DIRECTIONAL_KEYPAD, char)
+
+    return len(robot1_sequence)
+
+def calculate_complexity(code: str, sequence_length: int) -> int:
+    """"""Calculate the complexity of a code.
+
+    Args:
+        code: The numeric keypad code
+        sequence_length: Length of the shortest button press sequence
+
+    Returns:
+        Complexity value (sequence_length * numeric_part)
+    """"""
+    numeric_part = int(code[:-1])
+    return sequence_length * numeric_part
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    codes = parse_input(input_file)
+
+    total_complexity = 0
+
+    for code in codes:
+        sequence_length = solve_code_sequence(code)
+        complexity = calculate_complexity(code, sequence_length)
+        total_complexity += complexity
+
+    # ONLY PRINT THE RESULT, NO OTHER TEXT
+    print(total_complexity)
+
+if __name__ == ""__main__"":
+    main()"
+21,system,deepseek-chat,False,826.0233993530273,
+22,single-model,deepseek-chat,True,34.70944285392761,"""""""
+Advent of Code Day 22: Monkey Market
+Solution implementation for simulating secret number sequences.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+from typing import List
+
+def parse_input(input_file: str) -> List[int]:
+    """"""Parse the puzzle input from file into a list of initial secret numbers.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        List of initial secret numbers for each buyer
+    """"""
+    with open(input_file, 'r') as f:
+        return [int(line.strip()) for line in f if line.strip()]
+
+def next_secret_number(secret: int) -> int:
+    """"""Generate the next secret number in the sequence.
+
+    Args:
+        secret: Current secret number
+
+    Returns:
+        Next secret number in the sequence
+    """"""
+    # Step 1: Multiply by 64, mix, and prune
+    step1 = secret * 64
+    secret ^= step1
+    secret %= 16777216
+
+    # Step 2: Divide by 32 (floor), mix, and prune
+    step2 = secret // 32
+    secret ^= step2
+    secret %= 16777216
+
+    # Step 3: Multiply by 2048, mix, and prune
+    step3 = secret * 2048
+    secret ^= step3
+    secret %= 16777216
+
+    return secret
+
+def generate_secret_sequence(initial: int, count: int) -> int:
+    """"""Generate a sequence of secret numbers and return the nth one.
+
+    Args:
+        initial: Initial secret number
+        count: How many numbers to generate (returns the count-th number)
+
+    Returns:
+        The count-th secret number in the sequence
+    """"""
+    secret = initial
+    for _ in range(count):
+        secret = next_secret_number(secret)
+    return secret
+
+def solve_part_one(initial_secrets: List[int]) -> int:
+    """"""Solve part one of the puzzle.
+
+    Args:
+        initial_secrets: List of initial secret numbers for each buyer
+
+    Returns:
+        Sum of the 2000th secret number for each buyer
+    """"""
+    total = 0
+    for secret in initial_secrets:
+        nth_secret = generate_secret_sequence(secret, 2000)
+        total += nth_secret
+    return total
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    initial_secrets = parse_input(input_file)
+
+    # Solve part one
+    part_one_solution = solve_part_one(initial_secrets)
+    print(part_one_solution)
+
+    # Test with examples (if available)
+    # Uncomment to test with the example from the problem description
+    # test_input = [1, 10, 100, 2024]
+    # expected = 37327623
+    # assert solve_part_one(test_input) == expected
+    # print(""Test passed!"", file=sys.stderr)
+
+if __name__ == ""__main__"":
+    main()"
+22,system,deepseek-chat,True,239.08562707901,"""""""
+Advent of Code: Monkey Market - Simulate secret number sequences
+
+Solution implements the pseudorandom sequence generation for each buyer's secret number
+over 2000 iterations, then sums the 2000th secret number for each buyer.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+from typing import List
+
+def parse_input(input_file: str) -> List[int]:
+    """"""Parse the puzzle input from file into a list of integers.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        List of initial secret numbers for each buyer
+    """"""
+    with open(input_file, 'r') as f:
+        return [int(line.strip()) for line in f if line.strip()]
+
+def generate_next_secret(current_secret: int) -> int:
+    """"""Generate the next secret number in the sequence.
+
+    Args:
+        current_secret: The current secret number
+
+    Returns:
+        The next secret number after applying all operations
+    """"""
+    # Step 1: Multiply by 64, then mix and prune
+    current_secret ^= (current_secret * 64)
+    current_secret %= 16777216
+
+    # Step 2: Divide by 32 (floor division), then mix and prune
+    current_secret ^= (current_secret // 32)
+    current_secret %= 16777216
+
+    # Step 3: Multiply by 2048, then mix and prune
+    current_secret ^= (current_secret * 2048)
+    current_secret %= 16777216
+
+    return current_secret
+
+def simulate_secret_sequence(initial_secret: int, iterations: int = 2000) -> int:
+    """"""Simulate the secret number sequence for a buyer.
+
+    Args:
+        initial_secret: The starting secret number
+        iterations: Number of iterations to simulate (default 2000)
+
+    Returns:
+        The secret number after the specified iterations
+    """"""
+    secret = initial_secret
+    for _ in range(iterations):
+        secret = generate_next_secret(secret)
+    return secret
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    initial_secrets = parse_input(input_file)
+
+    # Simulate sequences and sum the 2000th secret for each buyer
+    total = sum(simulate_secret_sequence(secret) for secret in initial_secrets)
+
+    # Print only the result (as specified)
+    print(total)
+
+if __name__ == ""__main__"":
+    main()"
+23,single-model,deepseek-chat,False,31.41085910797119,"""""""
+Advent of Code Day 23: LAN Party
+Solution to find all sets of three interconnected computers where at least one starts with 't'.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Dict, Set, Tuple
+import sys
+from itertools import combinations
+
+
+def parse_input(input_file: str) -> Dict[str, Set[str]]:
+    """"""Parse the network connections into an adjacency list.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        Dictionary mapping each computer to its set of connected computers
+    """"""
+    connections = defaultdict(set)
+    with open(input_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            a, b = line.split('-')
+            connections[a].add(b)
+            connections[b].add(a)
+    return connections
+
+
+def find_triangles(connections: Dict[str, Set[str]]) -> List[Tuple[str, str, str]]:
+    """"""Find all sets of three interconnected computers (triangles).
+
+    Args:
+        connections: Network adjacency list
+
+    Returns:
+        List of tuples representing the interconnected triplets
+    """"""
+    triangles = []
+    computers = list(connections.keys())
+
+    # Check all possible combinations of 3 computers
+    for a, b, c in combinations(computers, 3):
+        if (b in connections[a] and
+            c in connections[a] and
+            c in connections[b]):
+            # Sort to avoid duplicates
+            triangle = tuple(sorted((a, b, c)))
+            if triangle not in triangles:
+                triangles.append(triangle)
+
+    return triangles
+
+
+def count_t_triangles(triangles: List[Tuple[str, str, str]]) -> int:
+    """"""Count triangles where at least one computer starts with 't'.
+
+    Args:
+        triangles: List of all interconnected triplets
+
+    Returns:
+        Count of triangles meeting the 't' condition
+    """"""
+    count = 0
+    for triangle in triangles:
+        if any(comp.startswith('t') for comp in triangle):
+            count += 1
+    return count
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    connections = parse_input(input_file)
+
+    # Find all triangles
+    triangles = find_triangles(connections)
+
+    # Count triangles with at least one 't' computer
+    result = count_t_triangles(triangles)
+
+    # Print only the result (as required)
+    print(result)
+
+
+if __name__ == ""__main__"":
+    main()"
+23,system,deepseek-chat,True,264.31233286857605,"""""""
+Advent of Code: LAN Party - Find interconnected computer triples with 't' names
+
+Solution approach:
+1. Build an adjacency list from the input connections
+2. Generate all possible combinations of 3 computers
+3. Check each combination to see if they form a clique (all interconnected)
+4. Filter cliques to only those with at least one computer name starting with 't'
+5. Count the number of valid cliques
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+from itertools import combinations
+from collections import defaultdict
+
+def parse_input(input_file: str) -> dict:
+    """"""Parse the input file into an adjacency list.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        Dictionary where keys are computer names and values are sets of connected computers
+    """"""
+    graph = defaultdict(set)
+    with open(input_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            a, b = line.split('-')
+            graph[a].add(b)
+            graph[b].add(a)
+    return graph
+
+def is_clique(triplet: tuple, graph: dict) -> bool:
+    """"""Check if three computers form a fully interconnected clique.
+
+    Args:
+        triplet: Tuple of three computer names
+        graph: Adjacency list of the network
+
+    Returns:
+        True if all three computers are connected to each other, False otherwise
+    """"""
+    a, b, c = triplet
+    return (b in graph[a] and c in graph[a] and
+            a in graph[b] and c in graph[b] and
+            a in graph[c] and b in graph[c])
+
+def has_t_computer(triplet: tuple) -> bool:
+    """"""Check if at least one computer in the triplet starts with 't'.
+
+    Args:
+        triplet: Tuple of three computer names
+
+    Returns:
+        True if at least one name starts with 't', False otherwise
+    """"""
+    return any(computer.startswith('t') for computer in triplet)
+
+def count_valid_cliques(graph: dict) -> int:
+    """"""Count the number of valid 3-computer cliques with at least one 't' computer.
+
+    Args:
+        graph: Adjacency list of the network
+
+    Returns:
+        Count of valid cliques
+    """"""
+    computers = list(graph.keys())
+    count = 0
+
+    # Generate all possible combinations of 3 computers
+    for triplet in combinations(computers, 3):
+        if is_clique(triplet, graph) and has_t_computer(triplet):
+            count += 1
+
+    return count
+
+def main():
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+    graph = parse_input(input_file)
+    result = count_valid_cliques(graph)
+    print(result)
+
+if __name__ == ""__main__"":
+    main()"
+24,single-model,deepseek-chat,True,48.30494499206543,"""""""
+Advent of Code Day 24: Crossed Wires
+Solution implementation for simulating boolean logic gates.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+from collections import defaultdict
+from typing import Dict, List, Tuple
+
+
+def parse_input(input_file: str) -> Tuple[Dict[str, int], List[Tuple[str, str, str, str]]]:
+    """"""Parse the puzzle input from file into initial wire values and gate definitions.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        Tuple containing:
+            - Dictionary of initial wire values
+            - List of gate definitions (gate_type, input1, input2, output)
+    """"""
+    initial_values = {}
+    gates = []
+
+    with open(input_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+
+            if '->' in line:
+                # Gate definition
+                parts = line.split('->')
+                left = parts[0].strip()
+                output = parts[1].strip()
+
+                # Split the left side into components
+                if ' AND ' in left:
+                    gate_type = 'AND'
+                    inputs = left.split(' AND ')
+                elif ' OR ' in left:
+                    gate_type = 'OR'
+                    inputs = left.split(' OR ')
+                elif ' XOR ' in left:
+                    gate_type = 'XOR'
+                    inputs = left.split(' XOR ')
+                else:
+                    raise ValueError(f""Invalid gate definition: {line}"")
+
+                gates.append((gate_type, inputs[0], inputs[1], output))
+            else:
+                # Initial value definition
+                parts = line.split(':')
+                wire = parts[0].strip()
+                value = int(parts[1].strip())
+                initial_values[wire] = value
+
+    return initial_values, gates
+
+
+def simulate_circuit(initial_values: Dict[str, int], gates: List[Tuple[str, str, str, str]]) -> Dict[str, int]:
+    """"""Simulate the circuit and compute all wire values.
+
+    Args:
+        initial_values: Dictionary of initial wire values
+        gates: List of gate definitions
+
+    Returns:
+        Dictionary containing all wire values after simulation
+    """"""
+    values = initial_values.copy()
+
+    # We need to process gates in the right order (topological sort)
+    # Since there are no cycles, we can process until all gates are resolved
+    unresolved_gates = gates.copy()
+
+    while unresolved_gates:
+        remaining_gates = []
+        progress_made = False
+
+        for gate in unresolved_gates:
+            gate_type, input1, input2, output = gate
+
+            # Check if both inputs are available
+            if input1 in values and input2 in values:
+                # Compute the gate output
+                val1 = values[input1]
+                val2 = values[input2]
+
+                if gate_type == 'AND':
+                    result = val1 & val2
+                elif gate_type == 'OR':
+                    result = val1 | val2
+                elif gate_type == 'XOR':
+                    result = val1 ^ val2
+                else:
+                    raise ValueError(f""Unknown gate type: {gate_type}"")
+
+                values[output] = result
+                progress_made = True
+            else:
+                remaining_gates.append(gate)
+
+        if not progress_made and remaining_gates:
+            raise RuntimeError(""Cannot resolve all gates - possible circular dependency"")
+
+        unresolved_gates = remaining_gates
+
+    return values
+
+
+def get_z_output(values: Dict[str, int]) -> int:
+    """"""Extract the output number from all wires starting with 'z'.
+
+    Args:
+        values: Dictionary containing all wire values
+
+    Returns:
+        The decimal number formed by combining all z wires (z00 as LSB)
+    """"""
+    # Collect all z wires and sort them by name
+    z_wires = [(name, value) for name, value in values.items() if name.startswith('z')]
+    z_wires.sort(key=lambda x: x[0])
+
+    # Combine the bits (z00 is LSB)
+    result = 0
+    for i, (name, value) in enumerate(z_wires):
+        result |= (value << i)
+
+    return result
+
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    initial_values, gates = parse_input(input_file)
+
+    # Simulate circuit
+    values = simulate_circuit(initial_values, gates)
+
+    # Get and print the z output
+    z_output = get_z_output(values)
+    print(z_output)
+
+
+if __name__ == ""__main__"":
+    main()"
+24,system,deepseek-chat,True,694.0797595977783,"""""""
+Advent of Code: Boolean Logic Gate Simulation
+Solution implementation based on the provided plan.
+
+Usage: python3 solution.py [input_file]
+""""""
+import sys
+from collections import defaultdict, deque
+
+def parse_input(input_str: str) -> tuple[dict[str, int], dict[str, tuple[list[str], str]]]:
+    """"""Parse the puzzle input into initial wire values and gate definitions.
+
+    Args:
+        input_str: The input string from the file
+
+    Returns:
+        tuple containing:
+            - initial_values: dict mapping wire names to their initial values
+            - gate_definitions: dict mapping output wires to (input_wires, gate_type)
+    """"""
+    lines = input_str.split('\n')
+    initial_values = {}
+    gate_definitions = {}
+
+    # First section: initial wire values
+    for line in lines:
+        if not line.strip():
+            break  # empty line separates sections
+        if ': ' in line:
+            wire, value = line.split(': ')
+            initial_values[wire] = int(value)
+
+    # Second section: gate definitions
+    for line in lines[len(initial_values) + 1:]:  # skip initial values and empty line
+        if not line.strip():
+            continue
+        parts = line.split(' -> ')
+        left_part, output_wire = parts[0], parts[1]
+        gate_parts = left_part.split()
+
+        if len(gate_parts) == 3:  # binary gate
+            input1, gate_type, input2 = gate_parts
+            gate_definitions[output_wire] = ([input1, input2], gate_type)
+
+    return initial_values, gate_definitions
+
+def topological_sort(gate_definitions: dict[str, tuple[list[str], str]]) -> list[str]:
+    """"""Perform topological sort on the gate dependencies.
+
+    Args:
+        gate_definitions: dict mapping output wires to (input_wires, gate_type)
+
+    Returns:
+        List of output wires in topological order
+    """"""
+    # Build dependency graph and in-degree count
+    graph = defaultdict(list)
+    in_degree = defaultdict(int)
+    all_wires = set()
+
+    for output_wire, (input_wires, _) in gate_definitions.items():
+        all_wires.update(input_wires)
+        all_wires.add(output_wire)
+        for input_wire in input_wires:
+            graph[input_wire].append(output_wire)
+            in_degree[output_wire] += 1
+
+    # Initialize queue with wires that have no dependencies
+    queue = deque([wire for wire in all_wires if in_degree.get(wire, 0) == 0])
+    topo_order = []
+
+    # Kahn's algorithm
+    while queue:
+        wire = queue.popleft()
+        if wire in gate_definitions:
+            topo_order.append(wire)
+
+        for neighbor in graph.get(wire, []):
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+
+    return topo_order
+
+def evaluate_gates(
+    initial_values: dict[str, int],
+    gate_definitions: dict[str, tuple[list[str], str]],
+    topo_order: list[str]
+) -> dict[str, int]:
+    """"""Evaluate all gates in topological order to compute wire values.
+
+    Args:
+        initial_values: dict of initial wire values
+        gate_definitions: dict mapping output wires to (input_wires, gate_type)
+        topo_order: list of output wires in processing order
+
+    Returns:
+        dict mapping all wire names to their final values
+    """"""
+    wire_values = initial_values.copy()
+
+    # Initialize all wires mentioned in gates
+    all_wires = set()
+    for output_wire, (input_wires, _) in gate_definitions.items():
+        all_wires.update(input_wires)
+        all_wires.add(output_wire)
+
+    for wire in all_wires:
+        if wire not in wire_values:
+            wire_values[wire] = None
+
+    # Process gates in topological order
+    for output_wire in topo_order:
+        input_wires, gate_type = gate_definitions[output_wire]
+        input1, input2 = input_wires
+
+        # Skip if inputs aren't ready
+        if wire_values[input1] is None or wire_values[input2] is None:
+            continue
+
+        # Apply gate logic
+        if gate_type == 'AND':
+            wire_values[output_wire] = wire_values[input1] & wire_values[input2]
+        elif gate_type == 'OR':
+            wire_values[output_wire] = wire_values[input1] | wire_values[input2]
+        elif gate_type == 'XOR':
+            wire_values[output_wire] = wire_values[input1] ^ wire_values[input2]
+
+    return wire_values
+
+def get_z_wire_values(wire_values: dict[str, int]) -> list[int]:
+    """"""Extract values from all wires starting with 'z' in sorted order.
+
+    Args:
+        wire_values: dict mapping wire names to their values
+
+    Returns:
+        List of binary values from 'z' wires in order
+    """"""
+    z_wires = sorted([(wire, val) for wire, val in wire_values.items()
+                     if wire.startswith('z') and val is not None],
+                    key=lambda x: x[0])
+    return [val for _, val in z_wires]
+
+def binary_to_decimal(bits: list[int]) -> int:
+    """"""Convert a list of bits (LSB first) to decimal.
+
+    Args:
+        bits: list of binary digits (0 or 1)
+
+    Returns:
+        Decimal equivalent of the binary number
+    """"""
+    return sum(bit * (1 << i) for i, bit in enumerate(bits))
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"", file=sys.stderr)
+        return
+
+    input_file = sys.argv[1]
+
+    # Read input file
+    with open(input_file, 'r') as f:
+        input_str = f.read()
+
+    # Parse input
+    initial_values, gate_definitions = parse_input(input_str)
+
+    # Perform topological sort
+    topo_order = topological_sort(gate_definitions)
+
+    # Evaluate all gates
+    wire_values = evaluate_gates(initial_values, gate_definitions, topo_order)
+
+    # Get z wire values
+    z_bits = get_z_wire_values(wire_values)
+
+    # Convert to decimal and print result
+    result = binary_to_decimal(z_bits)
+    print(result)
+
+if __name__ == ""__main__"":
+    main()"
+25,single-model,deepseek-chat,True,36.17346143722534,"""""""
+Advent of Code Day 25: Code Chronicle
+Solution implementation for determining compatible lock/key pairs.
+
+Usage: python3 solution.py [input_file]
+""""""
+from typing import List, Tuple
+import sys
+
+def parse_schematic(schematic: str) -> List[int]:
+    """"""Parse a lock or key schematic into a list of column heights.
+
+    Args:
+        schematic: String representation of the schematic
+
+    Returns:
+        List of column heights
+    """"""
+    lines = schematic.split('\n')
+    height = len(lines)
+
+    # For locks (top row filled), count downward from top
+    if lines[0].startswith('#'):
+        return [height - line.count('.') for line in zip(*lines)]
+    # For keys (bottom row filled), count upward from bottom
+    else:
+        return [line.count('#') for line in zip(*lines)]
+
+def parse_input(input_file: str) -> Tuple[List[List[int]], List[List[int]]]:
+    """"""Parse the input file into lists of lock and key schematics.
+
+    Args:
+        input_file: Path to the input file
+
+    Returns:
+        Tuple of (locks, keys) where each is a list of height lists
+    """"""
+    with open(input_file, 'r') as f:
+        content = f.read().strip()
+
+    # Split into individual schematics (separated by double newline)
+    schematics = [s.strip() for s in content.split('\n\n') if s.strip()]
+
+    locks = []
+    keys = []
+
+    for schematic in schematics:
+        # Check if it's a lock (top row filled) or key (bottom row filled)
+        lines = schematic.split('\n')
+        if lines[0].startswith('#'):
+            locks.append(parse_schematic(schematic))
+        else:
+            keys.append(parse_schematic(schematic))
+
+    return locks, keys
+
+def is_compatible(lock: List[int], key: List[int], total_height: int = 7) -> bool:
+    """"""Check if a lock and key are compatible (no overlapping columns).
+
+    Args:
+        lock: List of lock column heights
+        key: List of key column heights
+        total_height: Total height of the schematic (default 7 based on examples)
+
+    Returns:
+        True if compatible, False otherwise
+    """"""
+    for l, k in zip(lock, key):
+        if l + k > total_height:
+            return False
+    return True
+
+def count_compatible_pairs(locks: List[List[int]], keys: List[List[int]]) -> int:
+    """"""Count the number of compatible lock/key pairs.
+
+    Args:
+        locks: List of lock height lists
+        keys: List of key height lists
+
+    Returns:
+        Number of compatible pairs
+    """"""
+    count = 0
+    for lock in locks:
+        for key in keys:
+            if is_compatible(lock, key):
+                count += 1
+    return count
+
+def main():
+    # Check command line arguments
+    if len(sys.argv) < 2:
+        print(""Usage: python3 solution.py [input_file]"")
+        return
+
+    input_file = sys.argv[1]
+
+    # Parse input
+    locks, keys = parse_input(input_file)
+
+    # Count compatible pairs
+    result = count_compatible_pairs(locks, keys)
+
+    # ONLY PRINT THE RESULT, NO OTHER TEXT
+    print(result)
+
+if __name__ == ""__main__"":
+    main()"
+25,system,deepseek-chat,False,672.8927888870239,
