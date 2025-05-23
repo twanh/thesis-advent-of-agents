@@ -145,7 +145,7 @@ class RetrievalAgent(BaseAgent):
                 self.logger.error(
                     'Could not find a top ranked solution: ', ranked_sols,
                 )
-                raise ValueError('No rank=1 found')
+                return self._invalid_response_retry(state)
 
             top_rank_id = top_ranked_solution.get('solution_id', '')
             top_rank_plan = top_ranked_solution.get('plan', '')
@@ -155,7 +155,16 @@ class RetrievalAgent(BaseAgent):
                     lambda x: x['solution_id'] ==
                     top_rank_id, inp['solutions'],
                 ),
-            )[0]
+            )
+
+            if len(top_solution_code) < 1:
+                self.logger.error(
+                    'Could not find a solution with the given id',
+                    top_rank_id,
+                )
+                return self._invalid_response_retry(state)
+
+            top_solution_code = top_solution_code[0]
 
             self.logger.debug(
                 (
