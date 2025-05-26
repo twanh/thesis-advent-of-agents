@@ -81,6 +81,3 @@ pyrightconfig.json
 
 # VSCOde
 .vscode/
-
-# Ignore graphs dir where we save the graphs
-figures/*
